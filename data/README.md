@@ -1,6 +1,9 @@
 # Pasta data
 
-Coloque aqui arquivos de dados de exemplo ou uploads para uso local no dashboard.
+
+**Atenção:**
+
+- Use apenas exemplos ou dados anonimizados para testes.
 
 ## Exemplo de estrutura do JSON esperado
 
@@ -15,6 +18,7 @@ O arquivo JSON deve conter um objeto com a seguinte estrutura:
         "age": 35,
         "height": 1.70,
         "weight": 70,
+        "sexo": "F",
         "createdAt": "2025-03-15T10:00:00Z",
         "symptomDiaries": [
           {"createdAt": "2025-03-20T08:00:00Z"}
@@ -46,6 +50,7 @@ O arquivo JSON deve conter um objeto com a seguinte estrutura:
 ```
 
 **Observação:**
+- O campo `sexo` deve ser uma string, por exemplo: "M", "F" ou "Outro".
 - Todos os campos de data devem estar em formato ISO (ex: `2025-03-15T10:00:00Z`).
 - Os arrays podem estar vazios caso o paciente não tenha registros para aquela funcionalidade.
 - Adapte os campos conforme necessário, mas mantenha a estrutura principal para garantir o funcionamento do dashboard. 
