@@ -22,3 +22,6 @@ __pycache__/
 Thumbs.db 
 data/pacientes_marco-julho_com_createdAt_com_sexo.json 
 data/pacientes_marco-julho_com_createdAt_com_sexo_sigla_filtrado.json 
+data/pacientes_marco-agosto_com_createdAt_com_sexo.json
+pacientes_marco-agosto_com_createdAt_com_sexo_sigla_filtrado.json
+pacientes_marco-setembro_com_createdAt_com_sexo.json
