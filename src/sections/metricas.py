@@ -10,7 +10,7 @@ def mostrar_metricas(df_recorte):
     total_atividade = df_recorte['activityLogs'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum()
     perc_atividade = 100 * total_atividade / len(df_recorte) if len(df_recorte) > 0 else 0
     media_idade = df_recorte['age'].replace(0, None).mean()
-    col1.metric("👥 Total cadastrados (mar-jul/2025)", total_cadastrados_periodo)
+    col1.metric("👥 Total cadastrados (mar-setembro/2025)", total_cadastrados_periodo)
     col2.metric("💊 Com medicamento (%)", f"{perc_com_medicamento:.1f}%")
     col3.metric("🏃 Atividade física (%)", f"{perc_atividade:.1f}%")
     col4.metric("🎂 Idade média", f"{media_idade:.1f}")

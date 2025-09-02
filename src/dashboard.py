@@ -42,7 +42,7 @@ if uploaded_file:
             raise ValueError("O arquivo JSON não possui a estrutura esperada. Consulte o exemplo em data/README.md.")
         pacientes = data['data']['result']
         df = processar_datas(st.session_state.get('df', pd.DataFrame(pacientes)), 'createdAt')
-        mask_periodo = (df['createdAt'] >= '2025-03-01') & (df['createdAt'] <= '2025-07-31')
+        mask_periodo = (df['createdAt'] >= '2025-03-01') & (df['createdAt'] <= '2025-09-02')
         df_recorte = df[mask_periodo].copy()
         pacientes_recorte = df_recorte.to_dict(orient='records')
 

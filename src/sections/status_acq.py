@@ -3,12 +3,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+from datetime import datetime
 from utils.colors import CHART_COLORS, METRIC_COLORS
 
 def mostrar_status_acq(pacientes_recorte):
     # Coletar apenas a primeira semana de ACQ de cada paciente
     acq_primeira_semana = []
     acq_status_primeira_semana = []
+    acq_detalhes_pacientes = []  # Lista para armazenar detalhes de cada paciente
     
     # Contadores para taxa de preenchimento
     total_pacientes = len(pacientes_recorte)
@@ -41,6 +43,18 @@ def mostrar_status_acq(pacientes_recorte):
                             acq_status_primeira_semana.append(status)
                         else:
                             acq_status_primeira_semana.append('N/A')
+                        
+                        # Armazenar detalhes do paciente para a tabela
+                        data_primeiro_acq = primeiro_acq.get('createdAt') or primeiro_acq.get('answeredAt') or primeiro_acq.get('date') or 'N/A'
+                        acq_detalhes_pacientes.append({
+                            'ID do Paciente': paciente.get('id', 'N/A'),
+                            'Idade': paciente.get('age', 'N/A'),
+                            'Sexo': paciente.get('sex', 'N/A'),
+                            'Data do Primeiro ACQ': data_primeiro_acq,
+                            'Score ACQ': f"{score_float:.2f}",
+                            'Status': status,
+                            'Total de ACQs': len(acqs)
+                        })
                 except (TypeError, ValueError):
                     # Se não conseguir converter para float, pular este ACQ
                     continue
@@ -49,10 +63,6 @@ def mostrar_status_acq(pacientes_recorte):
     
     # Calcular taxa de preenchimento
     taxa_preenchimento = (pacientes_com_acq / total_pacientes * 100) if total_pacientes > 0 else 0
-    
-    # Validação de consistência dos dados
-    acqs_com_score_valido = len(acq_primeira_semana)
-    acqs_com_status_valido = len([s for s in acq_status_primeira_semana if s != 'N/A'])
     
     if acq_primeira_semana:
         st.subheader('🥧 Status de Controle da Asma (ACQ) - Primeira Semana')
@@ -66,15 +76,6 @@ def mostrar_status_acq(pacientes_recorte):
         col3.metric("❌ Sem ACQ", pacientes_sem_acq)
         col4.metric("📈 Taxa de Preenchimento", f"{taxa_preenchimento:.1f}%")
         
-        # Validação de consistência
-        st.markdown('### 🔍 Validação de Consistência dos Dados')
-        col1, col2 = st.columns(2)
-        col1.metric("📊 ACQs com Score Válido", acqs_com_score_valido)
-        col2.metric("📋 ACQs com Status Válido", acqs_com_status_valido)
-        
-        if acqs_com_score_valido != acqs_com_status_valido:
-            st.warning(f"⚠️ **Atenção**: {acqs_com_score_valido - acqs_com_status_valido} ACQs têm score válido mas status 'N/A'. Isso pode indicar inconsistência nos dados.")
-        
         # Criar DataFrame para análise
         df_acq = pd.DataFrame({
             'score': acq_primeira_semana,
@@ -83,6 +84,7 @@ def mostrar_status_acq(pacientes_recorte):
         
         # Estatísticas descritivas
         st.markdown('### 📊 Estatísticas Descritivas - Score ACQ Primeira Semana')
+        st.markdown('Estas estatísticas resumem a condição asmática registrada no **primeiro questionário ACQ** preenchido por cada paciente, na **primeira semana após a criação da conta**. Elas refletem o estado inicial do controle da asma, antes de quaisquer efeitos de acompanhamento.')
         col1, col2, col3, col4 = st.columns(4)
         
         valores_validos = df_acq['score'].dropna()
@@ -128,6 +130,88 @@ def mostrar_status_acq(pacientes_recorte):
                 )
                 st.plotly_chart(fig_pie, use_container_width=True, height=400)
         
+        # Tabela detalhada dos pacientes
+        st.markdown('### 📋 Detalhamento por Paciente - Primeiro ACQ')
+        st.info('Tabela com detalhes do primeiro preenchimento de ACQ de cada paciente, incluindo idade, sexo, data, score e status de controle.')
+        
+        if acq_detalhes_pacientes:
+            # Criar DataFrame para a tabela
+            df_detalhes = pd.DataFrame(acq_detalhes_pacientes)
+            
+            # Ordenar por data do primeiro ACQ
+            df_detalhes['Data do Primeiro ACQ'] = pd.to_datetime(df_detalhes['Data do Primeiro ACQ'], errors='coerce')
+            df_detalhes = df_detalhes.sort_values('Data do Primeiro ACQ', ascending=True)
+            
+            # Formatar a data para exibição
+            df_detalhes['Data do Primeiro ACQ'] = df_detalhes['Data do Primeiro ACQ'].dt.strftime('%d/%m/%Y %H:%M')
+            
+            # Filtros para a tabela
+            st.markdown('#### 🔍 Filtros da Tabela')
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                # Filtro por status
+                status_options = ['Todos'] + list(df_detalhes['Status'].unique())
+                status_filtro = st.selectbox('Status:', status_options)
+            
+            with col2:
+                # Filtro por sexo
+                sexo_options = ['Todos'] + list(df_detalhes['Sexo'].unique())
+                sexo_filtro = st.selectbox('Sexo:', sexo_options)
+            
+            with col3:
+                # Filtro por score mínimo
+                score_min = st.number_input('Score mínimo:', min_value=0.0, max_value=6.0, value=0.0, step=0.1)
+            
+            with col4:
+                # Filtro por score máximo
+                score_max = st.number_input('Score máximo:', min_value=0.0, max_value=6.0, value=6.0, step=0.1)
+            
+            # Aplicar filtros
+            df_filtrado = df_detalhes.copy()
+            
+            if status_filtro != 'Todos':
+                df_filtrado = df_filtrado[df_filtrado['Status'] == status_filtro]
+            
+            if sexo_filtro != 'Todos':
+                df_filtrado = df_filtrado[df_filtrado['Sexo'] == sexo_filtro]
+            
+            # Converter Score ACQ para float para filtro
+            df_filtrado['Score ACQ'] = pd.to_numeric(df_filtrado['Score ACQ'], errors='coerce')
+            df_filtrado = df_filtrado[
+                (df_filtrado['Score ACQ'] >= score_min) & 
+                (df_filtrado['Score ACQ'] <= score_max)
+            ]
+            
+            st.markdown(f"**Pacientes filtrados: {len(df_filtrado)} de {len(df_detalhes)}**")
+            
+            # Exibir tabela
+            st.dataframe(
+                df_filtrado,
+                use_container_width=True,
+                column_config={
+                    "ID do Paciente": st.column_config.TextColumn("ID do Paciente", width="medium"),
+                    "Idade": st.column_config.NumberColumn("Idade", width="small"),
+                    "Sexo": st.column_config.TextColumn("Sexo", width="small"),
+                    "Data do Primeiro ACQ": st.column_config.TextColumn("Data do Primeiro ACQ", width="medium"),
+                    "Score ACQ": st.column_config.NumberColumn("Score ACQ", format="%.2f", width="small"),
+                    "Status": st.column_config.TextColumn("Status", width="small"),
+                    "Total de ACQs": st.column_config.NumberColumn("Total de ACQs", width="small")
+                }
+            )
+            
+            # Resumo da tabela
+            st.markdown(f"**Total de pacientes com ACQ válido na tabela: {len(df_filtrado)}**")
+            
+            # Botão de download da tabela (dados filtrados)
+            csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
+            st.download_button(
+                label="📥 Download da Tabela (CSV)",
+                data=csv,
+                file_name=f"acq_primeira_semana_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv",
+                help="Baixar tabela com detalhes do primeiro ACQ de cada paciente"
+            )
     else:
         st.subheader('🥧 Status de Controle da Asma (ACQ)')
         st.warning('Nenhum registro de ACQ encontrado para a primeira semana dos pacientes no período selecionado.')
