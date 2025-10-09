@@ -7,16 +7,29 @@ from utils.colors import CHART_COLORS
 
 def mostrar_prescricoes_semanais(pacientes_recorte):
     st.subheader("💉 Registro de Tomada de Medicamento por Semana")
-    st.info("Esta seção mostra o comportamento semanal de tomada de medicamentos: para cada período, calcula a média de registros de medicamentos considerando apenas os usuários que já estavam cadastrados naquele período.")
+    st.info("Esta seção mostra o comportamento semanal de tomada de medicamentos: análise considera apenas pacientes com contas criadas a partir de março de 2025.")
     
     # Calcular dados semanais com usuários ativos por semana
     semanas_medicamentos = {}
     usuarios_por_semana = {}
     
-    # Definir período de análise (março a setembro 2025)
-    data_inicio = pd.Timestamp('2025-03-01')
-    data_fim = pd.Timestamp('2025-09-30')
-    
+    # Período fixo de extração dos dados
+    data_inicio = pd.Timestamp('2025-03-01').tz_localize('UTC')
+    data_fim = pd.Timestamp('2025-10-08').tz_localize('UTC')
+
+    # Filtrar pacientes criados a partir de março de 2025
+    pacientes_filtrados = []
+    data_limite = pd.Timestamp('2025-03-01').tz_localize('UTC')
+    for paciente in pacientes_recorte:
+        data_cadastro = paciente.get('createdAt')
+        if data_cadastro:
+            if isinstance(data_cadastro, str):
+                data_cadastro = parser.parse(data_cadastro)
+            if data_cadastro >= data_limite:
+                pacientes_filtrados.append(paciente)
+
+    st.info(f"Pacientes incluídos na análise: {len(pacientes_filtrados)} (contas criadas a partir de março de 2025)")
+
     # Para cada semana no período
     for semana in range(53):  # Máximo de semanas no ano
         semana_data = data_inicio + pd.Timedelta(weeks=semana)
@@ -28,64 +41,35 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
         fim_semana = inicio_semana + pd.Timedelta(days=6)
         
         # Normalizar timezone para UTC
-        inicio_semana = inicio_semana.tz_localize('UTC')
-        fim_semana = fim_semana.tz_localize('UTC')
+        if inicio_semana.tz is None:
+            inicio_semana = inicio_semana.tz_localize('UTC')
+        if fim_semana.tz is None:
+            fim_semana = fim_semana.tz_localize('UTC')
         
         registros_semana = []
         usuarios_ativos = 0
         
-        for paciente in pacientes_recorte:
-            # Verificar se o paciente já estava cadastrado nesta semana
-            data_cadastro = paciente.get('createdAt')
-            if data_cadastro:
-                # Verificar se já é um Timestamp ou se precisa fazer parsing
-                if isinstance(data_cadastro, str):
-                    data_cadastro = parser.parse(data_cadastro)
-                elif not isinstance(data_cadastro, pd.Timestamp):
-                    continue
-                
-                # Converter para pandas Timestamp se for datetime.datetime
-                if not isinstance(data_cadastro, pd.Timestamp):
-                    data_cadastro = pd.Timestamp(data_cadastro)
-                
-                # Normalizar timezone para UTC
-                if data_cadastro.tz is None:
-                    data_cadastro = data_cadastro.tz_localize('UTC')
-                else:
-                    data_cadastro = data_cadastro.tz_convert('UTC')
-                    
-                if data_cadastro <= fim_semana:
-                    usuarios_ativos += 1
-                    
-                    # Calcular registros de medicamentos nesta semana específica
-                    prescs = paciente.get('prescriptions', [])
-                    registros_na_semana = 0
-                    
-                    for presc in prescs:
-                        for admin in presc.get('administrations', []):
-                            data_admin = admin.get('date')
-                            if data_admin:
-                                # Verificar se já é um Timestamp ou se precisa fazer parsing
-                                if isinstance(data_admin, str):
-                                    data_admin = parser.parse(data_admin)
-                                elif not isinstance(data_admin, pd.Timestamp):
-                                    continue
-                                
-                                # Converter para pandas Timestamp se for datetime.datetime
-                                if not isinstance(data_admin, pd.Timestamp):
-                                    data_admin = pd.Timestamp(data_admin)
-                                
-                                # Normalizar timezone para UTC
-                                if data_admin.tz is None:
-                                    data_admin = data_admin.tz_localize('UTC')
-                                else:
-                                    data_admin = data_admin.tz_convert('UTC')
-                                    
-                                if inicio_semana <= data_admin <= fim_semana:
-                                    registros_na_semana += 1
-                    
-                    if registros_na_semana > 0:
-                        registros_semana.append(registros_na_semana)
+        for paciente in pacientes_filtrados:
+            # Calcular registros de medicamentos nesta semana específica para este paciente
+            prescs = paciente.get('prescriptions', [])
+            registros_na_semana = 0
+            
+            for presc in prescs:
+                for admin in presc.get('administrations', []):
+                    data_admin = admin.get('date')
+                    if data_admin:
+                        # Dados sempre vêm como string ISO com UTC
+                        if isinstance(data_admin, str):
+                            data_admin = parser.parse(data_admin)
+                        else:
+                            continue
+                            
+                        if inicio_semana <= data_admin <= fim_semana:
+                            registros_na_semana += 1
+            
+            if registros_na_semana > 0:
+                registros_semana.append(registros_na_semana)
+                usuarios_ativos += 1
         
         # Calcular média de registros para esta semana
         if registros_semana:

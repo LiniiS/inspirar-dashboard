@@ -67,7 +67,7 @@ def mostrar_recordes(pacientes_recorte):
             - **ID:** {paciente_mais_ativo_detalhes['id']}
             - **Conta criada em:** {paciente_mais_ativo_detalhes['data_cadastro'].strftime('%d/%m/%Y')}
             - **Período analisado:** {paciente_mais_ativo_detalhes['periodo_dias']} dias
-            - **Total de passos:** {paciente_mais_ativo_detalhes['total_passos']:,}
+            - **Total de passos:** {paciente_mais_ativo_detalhes['total_passos']:,","}
             - **Média diária:** {paciente_mais_ativo_detalhes['media_diaria']:,.0f} passos/dia
             """)
         else:
@@ -80,10 +80,10 @@ def mostrar_recordes(pacientes_recorte):
             **📊 Estatísticas Gerais**
             - Pacientes ativos: {pacientes_ativos}
             - Média de passos: {np.mean(todos_passos):,.0f}
-            - Total de passos: {sum(todos_passos):,}
+            - Total de passos: {sum(todos_passos):,","}
             - Mediana: {np.median(todos_passos):,.0f}
             """)
         else:
             st.info("📊 Nenhum dado de atividade física encontrado")
 
-    st.markdown('---') 
+    st.markdown('---')
