@@ -25,3 +25,8 @@ data/pacientes_marco-julho_com_createdAt_com_sexo_sigla_filtrado.json
 data/pacientes_marco-agosto_com_createdAt_com_sexo.json
 pacientes_marco-agosto_com_createdAt_com_sexo_sigla_filtrado.json
 pacientes_marco-setembro_com_createdAt_com_sexo.json
+pacientes_outubro_com_createdAt_com_sexo.json
+
+debug_semanais.py
+debug_simples.py
+debug_semanas.py

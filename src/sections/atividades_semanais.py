@@ -7,16 +7,29 @@ from utils.colors import CHART_COLORS
 
 def mostrar_atividades_semanais(pacientes_recorte):
     st.subheader("🏃 Registro de Atividade Física por Semana")
-    st.info("Esta versão mostra o comportamento semanal: para cada período, calcula a média de registros de atividades físicas considerando apenas os usuários que já estavam cadastrados naquele período.")
+    st.info("Esta seção mostra o comportamento semanal de registros de atividades físicas: análise considera apenas pacientes com contas criadas a partir de março de 2025.")
     
     # Calcular dados semanais com usuários ativos por semana
     semanas_atividades = {}
     usuarios_por_semana_atividades = {}
     
-    # Definir período de análise (março a setembro 2025)
-    data_inicio = pd.Timestamp('2025-03-01')
-    data_fim = pd.Timestamp('2025-09-30')
-    
+    # Período fixo de extração dos dados
+    data_inicio = pd.Timestamp('2025-03-01').tz_localize('UTC')
+    data_fim = pd.Timestamp('2025-10-08').tz_localize('UTC')
+
+    # Filtrar pacientes criados a partir de março de 2025
+    pacientes_filtrados = []
+    data_limite = pd.Timestamp('2025-03-01').tz_localize('UTC')
+    for paciente in pacientes_recorte:
+        data_cadastro = paciente.get('createdAt')
+        if data_cadastro:
+            if isinstance(data_cadastro, str):
+                data_cadastro = parser.parse(data_cadastro)
+            if data_cadastro >= data_limite:
+                pacientes_filtrados.append(paciente)
+
+    st.info(f"Pacientes incluídos na análise: {len(pacientes_filtrados)} (contas criadas a partir de março de 2025)")
+
     # Para cada semana no período
     for semana in range(53):  # Máximo de semanas no ano
         semana_data = data_inicio + pd.Timedelta(weeks=semana)
@@ -28,63 +41,34 @@ def mostrar_atividades_semanais(pacientes_recorte):
         fim_semana = inicio_semana + pd.Timedelta(days=6)
         
         # Normalizar timezone para UTC
-        inicio_semana = inicio_semana.tz_localize('UTC')
-        fim_semana = fim_semana.tz_localize('UTC')
+        if inicio_semana.tz is None:
+            inicio_semana = inicio_semana.tz_localize('UTC')
+        if fim_semana.tz is None:
+            fim_semana = fim_semana.tz_localize('UTC')
         
         registros_semana = []
         usuarios_ativos = 0
         
-        for paciente in pacientes_recorte:
-            # Verificar se o paciente já estava cadastrado nesta semana
-            data_cadastro = paciente.get('createdAt')
-            if data_cadastro:
-                # Verificar se já é um Timestamp ou se precisa fazer parsing
-                if isinstance(data_cadastro, str):
-                    data_cadastro = parser.parse(data_cadastro)
-                elif not isinstance(data_cadastro, pd.Timestamp):
-                    continue
-                
-                # Converter para pandas Timestamp se for datetime.datetime
-                if not isinstance(data_cadastro, pd.Timestamp):
-                    data_cadastro = pd.Timestamp(data_cadastro)
-                
-                # Normalizar timezone para UTC
-                if data_cadastro.tz is None:
-                    data_cadastro = data_cadastro.tz_localize('UTC')
-                else:
-                    data_cadastro = data_cadastro.tz_convert('UTC')
-                    
-                if data_cadastro <= fim_semana:
-                    usuarios_ativos += 1
-                    
-                    # Calcular registros de atividades nesta semana específica
-                    activities = paciente.get('activityLogs', [])
-                    registros_na_semana = 0
-                    
-                    for activity in activities:
-                        data_activity = activity.get('createdAt')
-                        if data_activity:
-                            # Verificar se já é um Timestamp ou se precisa fazer parsing
-                            if isinstance(data_activity, str):
-                                data_activity = parser.parse(data_activity)
-                            elif not isinstance(data_activity, pd.Timestamp):
-                                continue
-                            
-                            # Converter para pandas Timestamp se for datetime.datetime
-                            if not isinstance(data_activity, pd.Timestamp):
-                                data_activity = pd.Timestamp(data_activity)
-                            
-                            # Normalizar timezone para UTC
-                            if data_activity.tz is None:
-                                data_activity = data_activity.tz_localize('UTC')
-                            else:
-                                data_activity = data_activity.tz_convert('UTC')
-                                
-                            if inicio_semana <= data_activity <= fim_semana:
-                                registros_na_semana += 1
-                    
-                    if registros_na_semana > 0:
-                        registros_semana.append(registros_na_semana)
+        for paciente in pacientes_filtrados:
+            # Calcular registros de atividades nesta semana específica para este paciente
+            activities = paciente.get('activityLogs', [])
+            registros_na_semana = 0
+            
+            for activity in activities:
+                data_activity = activity.get('createdAt')
+                if data_activity:
+                    # Dados sempre vêm como string ISO com UTC
+                    if isinstance(data_activity, str):
+                        data_activity = parser.parse(data_activity)
+                    else:
+                        continue
+                        
+                    if inicio_semana <= data_activity <= fim_semana:
+                        registros_na_semana += 1
+            
+            if registros_na_semana > 0:
+                registros_semana.append(registros_na_semana)
+                usuarios_ativos += 1
         
         # Calcular média de registros para esta semana
         if registros_semana:

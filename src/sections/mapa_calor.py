@@ -49,7 +49,7 @@ def mostrar_mapa_calor(df_recorte):
             textfont={"size": 10}
         ))
         fig_heatmap_geral.update_layout(
-            title=f'Todos os Pacientes<br><small>({len(df_recorte)} pacientes)</small>',
+            title=f'Todos os Pacientes ({len(df_recorte)} pacientes)',
             xaxis_title='',
             yaxis_title='',
             height=400,
@@ -77,7 +77,7 @@ def mostrar_mapa_calor(df_recorte):
                 textfont={"size": 10}
             ))
             fig_heatmap_masc.update_layout(
-                title=f'Pacientes Masculinos<br><small>({len(df_masculino)} pacientes)</small>',
+                title=f'Pacientes Masculinos ({len(df_masculino)} pacientes)',
                 xaxis_title='',
                 yaxis_title='',
                 height=400,
@@ -107,7 +107,7 @@ def mostrar_mapa_calor(df_recorte):
                 textfont={"size": 10}
             ))
             fig_heatmap_fem.update_layout(
-                title=f'Pacientes Femininos<br><small>({len(df_feminino)} pacientes)</small>',
+                title=f'Pacientes Femininos ({len(df_feminino)} pacientes)',
                 xaxis_title='',
                 yaxis_title='',
                 height=400,
