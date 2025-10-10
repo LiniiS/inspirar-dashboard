@@ -146,7 +146,7 @@ def mostrar_crises(pacientes_recorte):
         
         with col_sexo_grafico:
             # Gráfico de crises por sexo e faixa de duração
-            crises_sexo_duracao = df_crises_sexo.groupby(['Sexo', 'faixa_duracao']).size().reset_index(name='count')
+            crises_sexo_duracao = df_crises_sexo.groupby(['Sexo', 'faixa_duracao'], observed=True).size().reset_index(name='count')
             
             fig_sexo_duracao = px.bar(
                 crises_sexo_duracao,

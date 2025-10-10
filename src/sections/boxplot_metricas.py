@@ -13,6 +13,8 @@ def mostrar_boxplot_metricas(df_recorte, pacientes_recorte):
         'Altura (m)': 'height',
     }
     
+    df_recorte = df_recorte.copy()  # Evitar SettingWithCopyWarning
+    
     if 'imc' not in df_recorte.columns:
         df_recorte['imc'] = df_recorte.apply(lambda row: row['weight'] / (row['height'] ** 2) if row['height'] and row['weight'] else np.nan, axis=1)
     metricas_numericas['IMC'] = 'imc'

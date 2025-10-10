@@ -21,6 +21,10 @@ from sections.status_acq import mostrar_status_acq
 from sections.recordes import mostrar_recordes
 from sections.tabelas import mostrar_tabelas
 from sections.mapa_calor import mostrar_mapa_calor
+#from sections.tomadas_mapa_calor import mostrar_tomadas_mapa_calor
+#from sections.ecdf_onboarding import mostrar_ecdf_onboarding
+#from sections.transicoes_mensais_acq import mostrar_transicoes_mensais_acq
+#from sections.radar_spider import mostrar_radar_spider
 
 st.set_page_config(page_title="Dashboard Inspirar", page_icon="��", layout="wide")
 
@@ -75,6 +79,10 @@ if uploaded_file:
         mostrar_prescricoes_semanais(pacientes_recorte)
         mostrar_diarios_semanais(pacientes_recorte)
         mostrar_atividades_semanais(pacientes_recorte)
+        #mostrar_tomadas_mapa_calor(pacientes_recorte)
+        #mostrar_ecdf_onboarding(pacientes_recorte)
+        #mostrar_transicoes_mensais_acq(pacientes_recorte)
+        #mostrar_radar_spider(pacientes_recorte)
         mostrar_status_acq(pacientes_recorte)
         mostrar_recordes(pacientes_recorte)
         mostrar_tabelas(df_filtrado, pacientes_recorte)
