@@ -21,6 +21,7 @@ def mostrar_funcionalidades_geral(df_recorte):
             isinstance(row['crisis'], list) and len(row['crisis']) > 0
         ])
     
+    df_recorte = df_recorte.copy()  # Evitar SettingWithCopyWarning
     df_recorte['n_funcionalidades'] = df_recorte.apply(conta_funcionalidades, axis=1)
     dist_funcionalidades = df_recorte['n_funcionalidades'].value_counts().sort_index()
     
