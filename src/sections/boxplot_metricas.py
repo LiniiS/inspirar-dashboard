@@ -2,10 +2,11 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from utils.colors import CHART_COLORS
+import plotly.graph_objects as go
+from utils.colors import CHART_COLORS, DARK_PURPLE, PRIMARY_PURPLE
 
 def mostrar_boxplot_metricas(df_recorte, pacientes_recorte):
-    st.subheader('📊 Análise Descritiva e Boxplot de Métricas Numéricas')
+    st.subheader('📊 Análise Descritiva e Distribuição de Métricas Numéricas')
     
     metricas_numericas = {
         'Idade': 'age',
@@ -53,89 +54,195 @@ def mostrar_boxplot_metricas(df_recorte, pacientes_recorte):
     col3.metric('Mediana', f'{valores_validos.median():.2f}')
     col4.metric('IQR (25%-75%)', f'{valores_validos.quantile(0.25):.2f} - {valores_validos.quantile(0.75):.2f}')
     
-    st.markdown(f"### Boxplot e Dados de {metrica_escolhida}")
+    st.markdown(f"### Distribuição Percentual de {metrica_escolhida}")
     
-    # Criar colunas para o boxplot e tabela lado a lado
+    # Criar colunas para o gráfico de barras e tabela lado a lado
     col_grafico, col_tabela = st.columns([3, 2])
     
     with col_grafico:
-        # Boxplot
-        fig_box = px.box(
-            df_recorte, 
-            y=coluna, 
-            points='all', 
-            title=f'Boxplot de {metrica_escolhida}',
-            color_discrete_sequence=[CHART_COLORS[0]]
-        )
-        fig_box.update_layout(
-            height=400,
-            margin=dict(l=50, r=50, t=80, b=50)
-        )
-        st.plotly_chart(fig_box, use_container_width=True, height=400)
+        # Criar faixas/intervalos para a métrica
+        def criar_faixas(valores, metrica_nome):
+            """Cria faixas apropriadas para cada tipo de métrica"""
+            valores_limpos = valores.dropna()
+            if len(valores_limpos) == 0:
+                return pd.DataFrame()
+            
+            if metrica_nome == 'Idade':
+                # Faixas de idade: 0-20, 21-30, 31-40, 41-50, 51-60, 61-70, 71+
+                bins = [0, 20, 30, 40, 50, 60, 70, 100]
+                labels = ['0-20', '21-30', '31-40', '41-50', '51-60', '61-70', '71+']
+            elif metrica_nome == 'Peso (kg)':
+                # Faixas de peso: 0-50, 51-60, 61-70, 71-80, 81-90, 91-100, 101+
+                bins = [0, 50, 60, 70, 80, 90, 100, 200]
+                labels = ['0-50kg', '51-60kg', '61-70kg', '71-80kg', '81-90kg', '91-100kg', '101+kg']
+            elif metrica_nome == 'Altura (m)':
+                # Faixas de altura: 1.40-1.50, 1.51-1.60, 1.61-1.70, 1.71-1.80, 1.81-1.90, 1.91+
+                bins = [1.40, 1.50, 1.60, 1.70, 1.80, 1.90, 2.20]
+                labels = ['1.40-1.50m', '1.51-1.60m', '1.61-1.70m', '1.71-1.80m', '1.81-1.90m', '1.91+m']
+            elif metrica_nome == 'IMC':
+                # Faixas de IMC: <18.5, 18.5-24.9, 25-29.9, 30-34.9, 35-39.9, 40+
+                bins = [0, 18.5, 25, 30, 35, 40, 100]
+                labels = ['<18.5', '18.5-24.9', '25-29.9', '30-34.9', '35-39.9', '40+']
+            elif 'ACQ' in metrica_nome:
+                # Faixas de score ACQ: 0-20, 21-40, 41-60, 61-80, 81-100
+                bins = [0, 20, 40, 60, 80, 100]
+                labels = ['0-20', '21-40', '41-60', '61-80', '81-100']
+            else:
+                # Faixas genéricas baseadas em quartis
+                q25, q50, q75 = valores_limpos.quantile([0.25, 0.5, 0.75])
+                bins = [valores_limpos.min(), q25, q50, q75, valores_limpos.max()]
+                labels = [f'Q1', f'Q2', f'Q3', f'Q4']
+            
+            # Criar faixas
+            faixas = pd.cut(valores_limpos, bins=bins, labels=labels, include_lowest=True)
+            contagem = faixas.value_counts().sort_index()
+            percentual = (contagem / len(valores_limpos) * 100).round(1)
+            
+            return pd.DataFrame({
+                'Faixa': contagem.index,
+                'Contagem': contagem.values,
+                'Percentual': percentual.values
+            })
+        
+        # Criar dados para o gráfico de barras
+        df_faixas = criar_faixas(valores_validos, metrica_escolhida)
+        
+        if not df_faixas.empty:
+            # Gráfico de barras com paleta escura e contorno
+            fig_bar = go.Figure(data=[
+                go.Bar(
+                    x=df_faixas['Faixa'],
+                    y=df_faixas['Percentual'],
+                    marker=dict(
+                        color=DARK_PURPLE,
+                        line=dict(
+                            color=PRIMARY_PURPLE,
+                            width=2
+                        )
+                    ),
+                    text=[f'{p:.1f}%' for p in df_faixas['Percentual']],
+                    textposition='auto',
+                    hovertemplate='<b>%{x}</b><br>Pacientes: %{y:.1f}%<extra></extra>'
+                )
+            ])
+            
+            fig_bar.update_layout(
+                title=f'Distribuição Percentual de {metrica_escolhida}',
+                xaxis_title='Faixas',
+                yaxis_title='Percentual de Pacientes (%)',
+                height=400,
+                margin=dict(l=50, r=50, t=80, b=50),
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                font=dict(color='#333333'),
+                xaxis=dict(
+                    tickangle=45,
+                    showgrid=True,
+                    gridcolor='rgba(128,128,128,0.2)'
+                ),
+                yaxis=dict(
+                    showgrid=True,
+                    gridcolor='rgba(128,128,128,0.2)'
+                )
+            )
+            
+            st.plotly_chart(fig_bar, use_container_width=True, height=400)
+        else:
+            st.warning("Não há dados suficientes para criar o gráfico de distribuição.")
     
     with col_tabela:
-        # Tabela com os dados
-        st.markdown(f"**Dados de {metrica_escolhida}**")
+        # Tabela com distribuição por faixas
+        st.markdown(f"**Distribuição de {metrica_escolhida}**")
         
-        # Criar DataFrame para a tabela
-        # Verificar se a coluna selecionada já é 'age' para evitar duplicação
-        colunas_tabela = [coluna, 'sex', 'id']
-        if coluna != 'age':
-            colunas_tabela.append('age')
-        
-        df_tabela = df_recorte[colunas_tabela].copy()
-        df_tabela = df_tabela.dropna(subset=[coluna])
-        
-        # Ordenar por valor ANTES da renomeação das colunas
-        df_tabela = df_tabela.sort_values(coluna, ascending=False)
-        
-        # Renomear colunas para melhor legibilidade
-        df_tabela = df_tabela.rename(columns={
-            coluna: 'Valor',
-            'sex': 'Sexo',
-            'id': 'ID do Paciente'
-        })
-        
-        # Adicionar coluna de idade se não for a métrica selecionada
-        if coluna != 'age':
-            df_tabela = df_tabela.rename(columns={'age': 'Idade'})
+        if not df_faixas.empty:
+            # Exibir tabela de distribuição
+            st.dataframe(
+                df_faixas,
+                use_container_width=True,
+                column_config={
+                    "Faixa": st.column_config.TextColumn("Faixa", width="medium"),
+                    "Contagem": st.column_config.NumberColumn("Pacientes", width="small"),
+                    "Percentual": st.column_config.NumberColumn("Percentual (%)", format="%.1f", width="small")
+                }
+            )
+            
+            # Resumo estatístico
+            st.markdown("**Resumo Estatístico:**")
+            st.markdown(f"• Total de pacientes: {len(valores_validos)}")
+            st.markdown(f"• Faixa mais comum: {df_faixas.loc[df_faixas['Percentual'].idxmax(), 'Faixa']} ({df_faixas['Percentual'].max():.1f}%)")
+            st.markdown(f"• Faixa menos comum: {df_faixas.loc[df_faixas['Percentual'].idxmin(), 'Faixa']} ({df_faixas['Percentual'].min():.1f}%)")
+            
+            # Botão de download da distribuição
+            csv_faixas = df_faixas.to_csv(index=False, encoding='utf-8-sig')
+            st.download_button(
+                label="📥 Download da Distribuição (CSV)",
+                data=csv_faixas,
+                file_name=f"distribuicao_{metrica_escolhida.replace(' ', '_')}_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv"
+            )
         else:
-            # Se a métrica selecionada é 'age', renomear para 'Idade' também
-            df_tabela = df_tabela.rename(columns={'Valor': 'Idade'})
+            st.warning("Não há dados suficientes para mostrar a distribuição.")
         
-        # Mapear códigos de sexo
-        df_tabela['Sexo'] = df_tabela['Sexo'].map({
-            'M': 'M',
-            'F': 'F',
-            'I': 'Indefinido'
-        })
+        # Separador
+        st.markdown("---")
         
-        # Formatar valores numéricos
-        if 'Idade' in df_tabela.columns:
-            df_tabela['Idade'] = df_tabela['Idade'].astype(int)
-        
-        # Exibir tabela
-        st.dataframe(
-            df_tabela,
-            use_container_width=True,
-            column_config={
-                "ID do Paciente": st.column_config.TextColumn("ID do Paciente", width="medium"),
-                "Valor": st.column_config.NumberColumn("Valor", format="%.2f", width="medium"),
-                "Idade": st.column_config.NumberColumn("Idade", width="small"),
-                "Sexo": st.column_config.TextColumn("Sexo", width="small")
-            }
-        )
-        
-        # Resumo da tabela
-        st.markdown(f"**Total de registros válidos: {len(df_tabela)}**")
-        
-        # Botão de download
-        csv = df_tabela.to_csv(index=False, encoding='utf-8-sig')
-        st.download_button(
-            label="📥 Download dos Dados (CSV)",
-            data=csv,
-            file_name=f"{metrica_escolhida.replace(' ', '_')}_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
-            mime="text/csv"
-        )
+        # Tabela detalhada com dados individuais (colapsável)
+        with st.expander("📋 Ver dados individuais dos pacientes"):
+            # Criar DataFrame para a tabela detalhada
+            colunas_tabela = [coluna, 'sex', 'id']
+            if coluna != 'age':
+                colunas_tabela.append('age')
+            
+            df_tabela = df_recorte[colunas_tabela].copy()
+            df_tabela = df_tabela.dropna(subset=[coluna])
+            
+            # Ordenar por valor ANTES da renomeação das colunas
+            df_tabela = df_tabela.sort_values(coluna, ascending=False)
+            
+            # Renomear colunas para melhor legibilidade
+            df_tabela = df_tabela.rename(columns={
+                coluna: 'Valor',
+                'sex': 'Sexo',
+                'id': 'ID do Paciente'
+            })
+            
+            # Adicionar coluna de idade se não for a métrica selecionada
+            if coluna != 'age':
+                df_tabela = df_tabela.rename(columns={'age': 'Idade'})
+            else:
+                # Se a métrica selecionada é 'age', renomear para 'Idade' também
+                df_tabela = df_tabela.rename(columns={'Valor': 'Idade'})
+            
+            # Mapear códigos de sexo
+            df_tabela['Sexo'] = df_tabela['Sexo'].map({
+                'M': 'M',
+                'F': 'F',
+                'I': 'Indefinido'
+            })
+            
+            # Formatar valores numéricos
+            if 'Idade' in df_tabela.columns:
+                df_tabela['Idade'] = df_tabela['Idade'].astype(int)
+            
+            # Exibir tabela
+            st.dataframe(
+                df_tabela,
+                use_container_width=True,
+                column_config={
+                    "ID do Paciente": st.column_config.TextColumn("ID do Paciente", width="medium"),
+                    "Valor": st.column_config.NumberColumn("Valor", format="%.2f", width="medium"),
+                    "Idade": st.column_config.NumberColumn("Idade", width="small"),
+                    "Sexo": st.column_config.TextColumn("Sexo", width="small")
+                }
+            )
+            
+            # Botão de download dos dados individuais
+            csv = df_tabela.to_csv(index=False, encoding='utf-8-sig')
+            st.download_button(
+                label="📥 Download dos Dados Individuais (CSV)",
+                data=csv,
+                file_name=f"dados_individuais_{metrica_escolhida.replace(' ', '_')}_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv"
+            )
     
     st.markdown('---') 
