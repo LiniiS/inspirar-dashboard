@@ -17,6 +17,7 @@ def mostrar_ativos(df_recorte):
             isinstance(row['crisis'], list) and len(row['crisis']) > 0
         ])
     
+    df_recorte = df_recorte.copy()  # Evitar SettingWithCopyWarning
     df_recorte['is_ativo'] = df_recorte.apply(paciente_ativo, axis=1)
     n_ativos = df_recorte['is_ativo'].sum()
     n_inativos = len(df_recorte) - n_ativos
