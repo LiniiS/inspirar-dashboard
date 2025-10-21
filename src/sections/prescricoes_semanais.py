@@ -6,7 +6,6 @@ from dateutil import parser
 from utils.colors import CHART_COLORS
 
 def mostrar_prescricoes_semanais(pacientes_recorte):
-    st.subheader("💉 Registro de Tomada de Medicamento por Semana")
     st.info("Esta seção mostra o comportamento semanal de tomada de medicamentos: análise considera apenas pacientes com contas criadas a partir de março de 2025.")
     
     # Calcular dados semanais com usuários ativos por semana
@@ -28,7 +27,6 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
             if data_cadastro >= data_limite:
                 pacientes_filtrados.append(paciente)
 
-    st.info(f"Pacientes incluídos na análise: {len(pacientes_filtrados)} (contas criadas a partir de março de 2025)")
 
     # Para cada semana no período
     for semana in range(53):  # Máximo de semanas no ano
@@ -46,7 +44,7 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
         if fim_semana.tz is None:
             fim_semana = fim_semana.tz_localize('UTC')
         
-        registros_semana = []
+        total_registros_semana = 0
         usuarios_ativos = 0
         
         for paciente in pacientes_filtrados:
@@ -68,22 +66,16 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
                             registros_na_semana += 1
             
             if registros_na_semana > 0:
-                registros_semana.append(registros_na_semana)
+                total_registros_semana += registros_na_semana
                 usuarios_ativos += 1
         
-        # Calcular média de registros para esta semana
-        if registros_semana:
-            media_registros = np.mean(registros_semana)
-        else:
-            media_registros = 0
-            
-        semanas_medicamentos[semana] = media_registros
+        semanas_medicamentos[semana] = total_registros_semana
         usuarios_por_semana[semana] = usuarios_ativos
     
     # Criar DataFrame para análise
     df_semanas = pd.DataFrame({
         'Semana': list(semanas_medicamentos.keys()),
-        'Média de Registros': list(semanas_medicamentos.values()),
+        'Total de Registros': list(semanas_medicamentos.values()),
         'Usuários Ativos': list(usuarios_por_semana.values())
     })
     
@@ -118,16 +110,16 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
         fig_alt = px.bar(
             df_semanas,
             x='Período',
-            y='Média de Registros',
-            title='Média de Registros de Medicamentos por Período',
-            color_discrete_sequence=[CHART_COLORS[0]],
-            labels={'Média de Registros': 'Média de Registros', 'Período': 'Período'}
+            y='Total de Registros',
+            title='Total de Registros de Medicamentos por Período',
+            color_discrete_sequence=[CHART_COLORS[2]],
+            labels={'Total de Registros': 'Total de Registros', 'Período': 'Período'}
         )
         fig_alt.update_layout(
             height=400,
             margin=dict(l=50, r=50, t=80, b=50),
             xaxis_title="Período",
-            yaxis_title="Média de Registros de Medicamentos"
+            yaxis_title="Total de Registros de Medicamentos"
         )
         st.plotly_chart(fig_alt, use_container_width=True, height=400)
         
@@ -137,7 +129,7 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
             x='Período',
             y='Usuários Ativos',
             title='Evolução de Usuários Ativos por Período',
-            color_discrete_sequence=[CHART_COLORS[1]]
+            color_discrete_sequence=[CHART_COLORS[2]]
         )
         fig_usuarios.update_layout(
             height=300,
@@ -152,8 +144,8 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
         st.markdown("**Dados por Período Detalhados**")
         
         # Formatar dados para exibição
-        df_exibicao = df_semanas[['Período', 'Média de Registros', 'Usuários Ativos']].copy()
-        df_exibicao['Média de Registros'] = df_exibicao['Média de Registros'].round(2)
+        df_exibicao = df_semanas[['Período', 'Total de Registros', 'Usuários Ativos']].copy()
+        df_exibicao['Total de Registros'] = df_exibicao['Total de Registros'].astype(int)
         df_exibicao['Usuários Ativos'] = df_exibicao['Usuários Ativos'].astype(int)
         
         st.dataframe(
@@ -161,14 +153,15 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
             use_container_width=True,
             column_config={
                 "Período": st.column_config.TextColumn("Período", width="medium"),
-                "Média de Registros": st.column_config.NumberColumn("Média de Registros", format="%.2f", width="medium"),
+                "Total de Registros": st.column_config.NumberColumn("Total de Registros", width="medium"),
                 "Usuários Ativos": st.column_config.NumberColumn("Usuários Ativos", width="small")
             }
         )
         
         # Resumo estatístico
         st.markdown(f"**Total de períodos analisados: {len(df_semanas)}**")
-        st.markdown(f"**Média geral de registros: {df_semanas['Média de Registros'].mean():.2f}**")
+        st.markdown(f"**Total geral de registros: {df_semanas['Total de Registros'].sum()}**")
+        st.markdown(f"**Pico de registros em uma semana: {df_semanas['Total de Registros'].max()}**")
         st.markdown(f"**Pico de usuários ativos: {df_semanas['Usuários Ativos'].max()}**")
         
         # Botão de download

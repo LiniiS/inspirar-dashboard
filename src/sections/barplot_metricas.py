@@ -3,10 +3,10 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from utils.colors import CHART_COLORS, DARK_PURPLE, PRIMARY_PURPLE
+from utils.colors import CHART_COLORS, SECONDARY_DARKER, PRIMARY_DARKER
 
-def mostrar_boxplot_metricas(df_recorte, pacientes_recorte):
-    st.subheader('📊 Análise Descritiva e Distribuição de Métricas Numéricas')
+def mostrar_barplot_metricas(df_recorte, pacientes_recorte):
+    st.subheader('Análise Descritiva e Distribuição de Métricas Numéricas')
     
     metricas_numericas = {
         'Idade': 'age',
@@ -20,15 +20,7 @@ def mostrar_boxplot_metricas(df_recorte, pacientes_recorte):
         df_recorte['imc'] = df_recorte.apply(lambda row: row['weight'] / (row['height'] ** 2) if row['height'] and row['weight'] else np.nan, axis=1)
     metricas_numericas['IMC'] = 'imc'
     
-    acq_iniciais = []
-    for paciente in pacientes_recorte:
-        acqs = paciente.get('acqs', [])
-        if acqs:
-            acq_iniciais.append(acqs[0].get('average', np.nan))
-        else:
-            acq_iniciais.append(np.nan)
-    df_recorte['score_acq_inicial'] = acq_iniciais
-    metricas_numericas['Score ACQ inicial'] = 'score_acq_inicial'
+    # Removido ACQ inicial - não adequado para barplot
     
     for col in ['media_presc_semana', 'media_diario_semana', 'media_atividade_semana', 'percentual_acq']:
         if col in df_recorte.columns:
@@ -85,10 +77,7 @@ def mostrar_boxplot_metricas(df_recorte, pacientes_recorte):
                 # Faixas de IMC: <18.5, 18.5-24.9, 25-29.9, 30-34.9, 35-39.9, 40+
                 bins = [0, 18.5, 25, 30, 35, 40, 100]
                 labels = ['<18.5', '18.5-24.9', '25-29.9', '30-34.9', '35-39.9', '40+']
-            elif 'ACQ' in metrica_nome:
-                # Faixas de score ACQ: 0-20, 21-40, 41-60, 61-80, 81-100
-                bins = [0, 20, 40, 60, 80, 100]
-                labels = ['0-20', '21-40', '41-60', '61-80', '81-100']
+            # Removido ACQ - não adequado para barplot
             else:
                 # Faixas genéricas baseadas em quartis
                 q25, q50, q75 = valores_limpos.quantile([0.25, 0.5, 0.75])
@@ -116,14 +105,12 @@ def mostrar_boxplot_metricas(df_recorte, pacientes_recorte):
                     x=df_faixas['Faixa'],
                     y=df_faixas['Percentual'],
                     marker=dict(
-                        color=DARK_PURPLE,
+                        color=PRIMARY_DARKER,
                         line=dict(
-                            color=PRIMARY_PURPLE,
+                            color=PRIMARY_DARKER,
                             width=2
                         )
                     ),
-                    text=[f'{p:.1f}%' for p in df_faixas['Percentual']],
-                    textposition='auto',
                     hovertemplate='<b>%{x}</b><br>Pacientes: %{y:.1f}%<extra></extra>'
                 )
             ])
@@ -189,7 +176,7 @@ def mostrar_boxplot_metricas(df_recorte, pacientes_recorte):
         st.markdown("---")
         
         # Tabela detalhada com dados individuais (colapsável)
-        with st.expander("📋 Ver dados individuais dos pacientes"):
+        with st.expander("Ver dados individuais dos pacientes"):
             # Criar DataFrame para a tabela detalhada
             colunas_tabela = [coluna, 'sex', 'id']
             if coluna != 'age':
@@ -246,5 +233,7 @@ def mostrar_boxplot_metricas(df_recorte, pacientes_recorte):
                 file_name=f"dados_individuais_{metrica_escolhida.replace(' ', '_')}_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv"
             )
+    
+    # Pirâmide etária removida
     
     st.markdown('---') 

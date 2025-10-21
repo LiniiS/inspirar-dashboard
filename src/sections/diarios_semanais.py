@@ -6,7 +6,7 @@ from dateutil import parser
 from utils.colors import CHART_COLORS
 
 def mostrar_diarios_semanais(pacientes_recorte):
-    st.subheader("📓 Registro de Diário de Sintomas por Semana")
+    st.subheader("Registro de Diário de Sintomas por Semana")
     st.info("Esta seção mostra o comportamento semanal de registros de diários de sintomas: análise considera apenas pacientes com contas criadas a partir de março de 2025.")
     
     # Calcular dados semanais com usuários ativos por semana
@@ -28,7 +28,6 @@ def mostrar_diarios_semanais(pacientes_recorte):
             if data_cadastro >= data_limite:
                 pacientes_filtrados.append(paciente)
 
-    st.info(f"Pacientes incluídos na análise: {len(pacientes_filtrados)} (contas criadas a partir de março de 2025)")
 
     # Para cada semana no período
     for semana in range(53):  # Máximo de semanas no ano

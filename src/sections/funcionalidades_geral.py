@@ -5,11 +5,10 @@ import pandas as pd
 from utils.colors import CHART_COLORS
 
 def mostrar_funcionalidades_geral(df_recorte):
-    st.subheader('📊 Análise Geral de Funcionalidades')
     st.markdown('Visão global do uso das funcionalidades do aplicativo pelos pacientes.')
     
     # --- Distribuição do Número de Funcionalidades Utilizadas por Paciente ---
-    st.subheader('📊 Distribuição do Número de Funcionalidades Utilizadas por Paciente')
+    st.subheader('Distribuição do Número de Funcionalidades Utilizadas por Paciente')
     st.info('Para cada paciente, é contado quantas funcionalidades diferentes ele utilizou ao menos uma vez (diário de sintomas, ACQ, atividade física, prescrição, crise). O gráfico mostra a distribuição dessa contagem entre todos os pacientes.')
     
     def conta_funcionalidades(row):
@@ -76,7 +75,7 @@ def mostrar_funcionalidades_geral(df_recorte):
     st.markdown('---')
 
     # --- Funcionalidades Mais Utilizadas ---
-    st.subheader('🏆 Ranking de Funcionalidades Mais Utilizadas')
+    st.subheader('Ranking de Funcionalidades Mais Utilizadas')
     st.info('Para cada funcionalidade, é contado o número de pacientes que a utilizou ao menos uma vez no período analisado. O gráfico mostra o ranking das funcionalidades mais acessadas.')
     
     # Calcular uso de cada funcionalidade
@@ -170,7 +169,7 @@ def mostrar_funcionalidades_geral(df_recorte):
     st.markdown('---')
     
     # --- Distribuição por Sexo (Resumo) ---
-    st.subheader('👥 Distribuição Geral por Sexo')
+    st.subheader('Distribuição Geral por Sexo')
     st.markdown('Visão resumida da distribuição de pacientes por sexo.')
     
     if 'sex' in df_recorte.columns:

@@ -7,7 +7,6 @@ import numpy as np
 from utils.colors import CHART_COLORS
 
 def mostrar_crises(pacientes_recorte):
-    st.subheader('🚨 Análise Detalhada de Crises de Asma')
     st.info('Análise abrangente das crises de asma: períodos de duração, medicamentos utilizados durante as crises e distribuição por sexo.')
     
     # Análise geral de crises
@@ -81,7 +80,7 @@ def mostrar_crises(pacientes_recorte):
     
     # --- SEÇÃO 1: Distribuição por Duração ---
     st.markdown("---")
-    st.subheader('📊 Distribuição de Crises por Duração')
+    st.subheader('Distribuição de Crises por Duração')
     
     # Definir faixas de duração
     bins = [-1, 2, 5, 10, 15, 30, float('inf')]
@@ -130,7 +129,7 @@ def mostrar_crises(pacientes_recorte):
     
     # --- SEÇÃO 2: Análise por Sexo ---
     st.markdown("---")
-    st.subheader('👥 Análise de Crises por Sexo')
+    st.subheader('Análise de Crises por Sexo')
     
     # Filtrar dados para excluir sexo indefinido
     df_crises_sexo = df_crises[df_crises['sexo'].isin(['M', 'F'])].copy()
@@ -209,7 +208,7 @@ def mostrar_crises(pacientes_recorte):
     
     # --- SEÇÃO 3: Tabela Detalhada ---
     st.markdown("---")
-    st.subheader('📋 Dados Detalhados das Crises')
+    st.subheader('Dados Detalhados das Crises')
     
     # Preparar dados para exibição
     df_exibicao = df_crises.copy()

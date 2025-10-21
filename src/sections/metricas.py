@@ -1,7 +1,7 @@
 import streamlit as st
 
 def mostrar_metricas(df_recorte):
-    st.subheader('📈 Métricas Principais')
+    st.subheader('Métricas Principais')
     st.markdown('Principais indicadores quantitativos da amostra de pacientes no período selecionado.')
     col1, col2, col3, col4 = st.columns(4)
     total_cadastrados_periodo = df_recorte.shape[0]
@@ -12,9 +12,9 @@ def mostrar_metricas(df_recorte):
     media_idade = df_recorte['age'].replace(0, None).mean()
     # Obter período dinâmico do session_state
     periodo_texto = st.session_state.get('periodo_texto', 'mar-out/2025')
-    col1.metric(f"👥 Total cadastrados ({periodo_texto})", total_cadastrados_periodo)
-    col2.metric("💊 Com medicamento (%)", f"{perc_com_medicamento:.1f}%")
-    col3.metric("🏃 Atividade física (%)", f"{perc_atividade:.1f}%")
-    col4.metric("🎂 Idade média", f"{media_idade:.1f}")
+    col1.metric(f"Total cadastrados ({periodo_texto})", total_cadastrados_periodo)
+    col2.metric("Com medicamento (%)", f"{perc_com_medicamento:.1f}%")
+    col3.metric("Atividade física (%)", f"{perc_atividade:.1f}%")
+    col4.metric("Idade média", f"{media_idade:.1f}")
     st.markdown("&nbsp;", unsafe_allow_html=True)
     st.markdown('---') 

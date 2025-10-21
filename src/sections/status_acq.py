@@ -65,16 +65,16 @@ def mostrar_status_acq(pacientes_recorte):
     taxa_preenchimento = (pacientes_com_acq / total_pacientes * 100) if total_pacientes > 0 else 0
     
     if acq_primeira_semana:
-        st.subheader('🥧 Status de Controle da Asma (ACQ) - Primeira Semana')
+        st.subheader('Status de Controle da Asma (ACQ) - Primeira Semana')
         st.info('Análise do ACQ (Asthma Control Questionnaire) considerando apenas o **primeiro preenchimento temporal** de cada paciente (ordenado por data de criação/resposta). Isso fornece uma visão mais precisa do controle inicial da asma, garantindo consistência para análise médica.')
         
         # Métricas de engajamento
-        st.markdown('### 📊 Métricas de Engajamento com ACQ')
+        st.markdown('### Métricas de Engajamento com ACQ')
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("👥 Total de Pacientes", total_pacientes)
-        col2.metric("✅ Com ACQ", pacientes_com_acq)
-        col3.metric("❌ Sem ACQ", pacientes_sem_acq)
-        col4.metric("📈 Taxa de Preenchimento", f"{taxa_preenchimento:.1f}%")
+        col1.metric("Total de Pacientes", total_pacientes)
+        col2.metric("Com ACQ", pacientes_com_acq)
+        col3.metric("Sem ACQ", pacientes_sem_acq)
+        col4.metric("Taxa de Preenchimento", f"{taxa_preenchimento:.1f}%")
         
         # Criar DataFrame para análise
         df_acq = pd.DataFrame({
@@ -83,7 +83,6 @@ def mostrar_status_acq(pacientes_recorte):
         })
         
         # Estatísticas descritivas
-        st.markdown('### 📊 Estatísticas Descritivas - Score ACQ Primeira Semana')
         st.markdown('Estas estatísticas resumem a condição asmática registrada no **primeiro questionário ACQ** preenchido por cada paciente, na **primeira semana após a criação da conta**. Elas refletem o estado inicial do controle da asma, antes de quaisquer efeitos de acompanhamento.')
         col1, col2, col3, col4 = st.columns(4)
         
@@ -93,7 +92,7 @@ def mostrar_status_acq(pacientes_recorte):
         col3.metric('Mediana', f'{valores_validos.median():.2f}')
         col4.metric('IQR (25%-75%)', f'{valores_validos.quantile(0.25):.2f} - {valores_validos.quantile(0.75):.2f}')
         
-        st.markdown('### 📊 Visualizações - Primeira Semana')
+        st.markdown('### Visualizações - Primeira Semana')
         col1, col2 = st.columns(2)
         
         with col1:
@@ -131,7 +130,7 @@ def mostrar_status_acq(pacientes_recorte):
                 st.plotly_chart(fig_pie, use_container_width=True, height=400)
         
         # Tabela detalhada dos pacientes
-        st.markdown('### 📋 Detalhamento por Paciente - Primeiro ACQ')
+        st.markdown('### Detalhamento por Paciente - Primeiro ACQ')
         st.info('Tabela com detalhes do primeiro preenchimento de ACQ de cada paciente, incluindo idade, sexo, data, score e status de controle.')
         
         if acq_detalhes_pacientes:
@@ -146,7 +145,7 @@ def mostrar_status_acq(pacientes_recorte):
             df_detalhes['Data do Primeiro ACQ'] = df_detalhes['Data do Primeiro ACQ'].dt.strftime('%d/%m/%Y %H:%M')
             
             # Filtros para a tabela
-            st.markdown('#### 🔍 Filtros da Tabela')
+            st.markdown('#### Filtros da Tabela')
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
@@ -213,7 +212,7 @@ def mostrar_status_acq(pacientes_recorte):
                 help="Baixar tabela com detalhes do primeiro ACQ de cada paciente"
             )
     else:
-        st.subheader('🥧 Status de Controle da Asma (ACQ)')
+        st.subheader('Status de Controle da Asma (ACQ)')
         st.warning('Nenhum registro de ACQ encontrado para a primeira semana dos pacientes no período selecionado.')
     
     st.markdown('---') 

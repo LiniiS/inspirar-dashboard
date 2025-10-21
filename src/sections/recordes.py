@@ -4,7 +4,7 @@ import numpy as np
 from dateutil import parser
 
 def mostrar_recordes(pacientes_recorte):
-    st.subheader('🏆 Recordes e Destaques')
+    st.subheader('Recordes e Destaques')
     st.markdown('Destaques individuais, como paciente mais ativo baseado na média diária de passos.')
 
     # Encontrar paciente mais ativo baseado na média diária de passos
@@ -63,7 +63,7 @@ def mostrar_recordes(pacientes_recorte):
     with col1:
         if paciente_mais_ativo_detalhes:
             st.success(f"""
-            **🏃‍♂️ Paciente Mais Ativo**
+            **Paciente Mais Ativo**
             - **ID:** {paciente_mais_ativo_detalhes['id']}
             - **Conta criada em:** {paciente_mais_ativo_detalhes['data_cadastro'].strftime('%d/%m/%Y')}
             - **Período analisado:** {paciente_mais_ativo_detalhes['periodo_dias']} dias

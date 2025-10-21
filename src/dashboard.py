@@ -13,7 +13,7 @@ from sections.idade import mostrar_idade
 from sections.crises import mostrar_crises
 from sections.funcionalidades_geral import mostrar_funcionalidades_geral
 from sections.funcionalidades_sexo import mostrar_funcionalidades_sexo
-from sections.boxplot_metricas import mostrar_boxplot_metricas
+from sections.barplot_metricas import mostrar_barplot_metricas
 from sections.prescricoes_semanais import mostrar_prescricoes_semanais
 from sections.diarios_semanais import mostrar_diarios_semanais
 from sections.atividades_semanais import mostrar_atividades_semanais
@@ -73,25 +73,52 @@ if uploaded_file:
         st.sidebar.success(f"📊 Período: {periodo_texto}")
         st.sidebar.info(f"📅 Dados extraídos de 01/03/2025 a 08/10/2025")
 
-        mostrar_metricas(df_filtrado)
-        mostrar_ativos(df_filtrado)
-        mostrar_boxplot_metricas(df_filtrado, pacientes_recorte)
-        mostrar_prescricoes_semanais(pacientes_recorte)
-        mostrar_diarios_semanais(pacientes_recorte)
-        mostrar_atividades_semanais(pacientes_recorte)
-        #mostrar_tomadas_mapa_calor(pacientes_recorte)
-        #mostrar_ecdf_onboarding(pacientes_recorte)
-        #mostrar_transicoes_mensais_acq(pacientes_recorte)
-        #mostrar_radar_spider(pacientes_recorte)
-        mostrar_status_acq(pacientes_recorte)
-        mostrar_recordes(pacientes_recorte)
-        mostrar_tabelas(df_filtrado, pacientes_recorte)
-        mostrar_idade(df_filtrado)
-        mostrar_crises(pacientes_recorte)
-        mostrar_funcionalidades_geral(df_filtrado)
-        mostrar_funcionalidades_sexo(df_filtrado)
-        mostrar_mapa_calor(df_filtrado)
-        # As demais seções podem ser integradas de forma similar
+        # Criar estrutura de abas para organizar as seções
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+            "📊 Visão Geral", 
+            "👥 Demografia", 
+            "💊 Medicamentos", 
+            "📝 Diários & Atividades", 
+            "📈 Análises Avançadas",
+            "📋 Dados Detalhados"
+        ])
+        
+        with tab1:
+            st.markdown("### 📊 Visão Geral dos Pacientes")
+            mostrar_metricas(df_filtrado)
+            mostrar_ativos(df_filtrado)
+            mostrar_idade(df_filtrado)
+        
+        with tab2:
+            st.markdown("### 👥 Análise Demográfica")
+            mostrar_barplot_metricas(df_filtrado, pacientes_recorte)
+            mostrar_crises(pacientes_recorte)
+        
+        with tab3:
+            st.markdown("### 💊 Medicamentos e Prescrições")
+            mostrar_prescricoes_semanais(pacientes_recorte)
+            mostrar_status_acq(pacientes_recorte)
+        
+        with tab4:
+            st.markdown("### 📝 Diários e Atividades Físicas")
+            mostrar_diarios_semanais(pacientes_recorte)
+            mostrar_atividades_semanais(pacientes_recorte)
+            mostrar_recordes(pacientes_recorte)
+        
+        with tab5:
+            st.markdown("### 📈 Análises Avançadas")
+            mostrar_funcionalidades_geral(df_filtrado)
+            mostrar_funcionalidades_sexo(df_filtrado)
+            mostrar_mapa_calor(df_filtrado)
+            # Seções comentadas para futuras implementações
+            #mostrar_tomadas_mapa_calor(pacientes_recorte)
+            #mostrar_ecdf_onboarding(pacientes_recorte)
+            #mostrar_transicoes_mensais_acq(pacientes_recorte)
+            #mostrar_radar_spider(pacientes_recorte)
+        
+        with tab6:
+            st.markdown("### 📋 Dados Detalhados")
+            mostrar_tabelas(df_filtrado, pacientes_recorte)
     except Exception as e:
         st.error(f"Erro ao processar o arquivo JSON: {e}\n\nVerifique se o arquivo segue o formato correto. Consulte o exemplo em data/README.md.")
 else:
