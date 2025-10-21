@@ -6,7 +6,7 @@ from dateutil import parser
 from utils.colors import CHART_COLORS
 
 def mostrar_atividades_semanais(pacientes_recorte):
-    st.subheader("🏃 Registro de Atividade Física por Semana")
+    st.subheader("Registro de Atividade Física por Semana")
     st.info("Esta seção mostra o comportamento semanal de registros de atividades físicas: análise considera apenas pacientes com contas criadas a partir de março de 2025.")
     
     # --- Helpers ---------------------------------------------------------
@@ -59,7 +59,6 @@ def mostrar_atividades_semanais(pacientes_recorte):
         if data_cadastro and data_cadastro >= data_limite:
             pacientes_filtrados.append(paciente)
 
-    st.info(f"Pacientes incluídos na análise: {len(pacientes_filtrados)} (contas criadas a partir de março de 2025)")
 
     # Loop semanal
     for semana in range(53):
@@ -165,40 +164,142 @@ def mostrar_atividades_semanais(pacientes_recorte):
         )
         st.plotly_chart(fig_usuarios_atividades, use_container_width=True, height=300)
 
-        # Gráfico de Bolhas — x: número da Semana, y: Usuários Ativos, raio: Total de Passos
+        # Gráfico de Barras - Média de Passos por Semana
         if not df_semanas_atividades.empty:
-            max_area_px = 60  # diâmetro máximo (px)
-            max_passos = max(1, df_semanas_atividades['Total de Passos'].max())
-            sizeref = 2.0 * max_passos / (max_area_px ** 2)
-
-            fig_bolhas = px.scatter(
+            fig_barras_passos = px.bar(
                 df_semanas_atividades,
-                x='Semana',
-                y='Usuários Ativos',
-                size='Total de Passos',            
-                size_max=max_area_px,
-                title='Bolhas Semanais: Usuários Ativos × Total de Passos',
-                color_discrete_sequence=[CHART_COLORS[5]], 
-                labels={'Semana': 'Semana (nº)', 'Usuários Ativos': 'Pessoas'},
-                hover_data={
-                    'Período': True,
-                    'Média de Registros': ':.2f',
-                    'Total de Passos': ':,',
-                    'Passos médios por usuário ativo': ':,',
-                    'Semana': False  
+                x='Período',
+                y='Passos médios por usuário ativo',
+                title='Média de Passos por Usuário Ativo por Período',
+                color_discrete_sequence=[CHART_COLORS[2]],
+                labels={
+                    'Passos médios por usuário ativo': 'Média de Passos',
+                    'Período': 'Período'
                 }
             )
-            # Força a referência de área para manter a leitura do raio
-            fig_bolhas.update_traces(marker=dict(sizeref=sizeref, sizemode='area', opacity=0.75, line_width=0.5))
-            fig_bolhas.update_layout(
-                height=420,
+            fig_barras_passos.update_layout(
+                height=400,
                 margin=dict(l=50, r=50, t=80, b=50),
-                xaxis_title="Semana (número desde 01/03/2025)",
-                yaxis_title="Usuários Ativos",
+                xaxis_title="Período",
+                yaxis_title="Média de Passos por Usuário",
+                xaxis=dict(tickangle=45)
             )
-            st.plotly_chart(fig_bolhas, use_container_width=True, height=420)
+            st.plotly_chart(fig_barras_passos, use_container_width=True, height=400)
         else:
-            st.info("Sem semanas com usuários ativos para exibir no gráfico de bolhas.")
+            st.info("Sem semanas com usuários ativos para exibir no gráfico.")
+        
+        # Novo gráfico: Passos diários de um paciente específico
+        st.markdown("---")
+        st.markdown("### Análise Individual de Passos Diários")
+        
+        # Obter lista de IDs dos pacientes
+        ids_pacientes = [p.get('id', 'N/A') for p in pacientes_filtrados if p.get('id')]
+        ids_pacientes = [id_p for id_p in ids_pacientes if id_p != 'N/A']
+        
+        if ids_pacientes:
+            # Seletor de paciente
+            paciente_selecionado = st.selectbox(
+                "Selecione o paciente pelo ID:",
+                ids_pacientes,
+                index=0
+            )
+            
+            # Seletor de mês
+            meses_disponiveis = [
+                "Março 2025", "Abril 2025", "Maio 2025", "Junho 2025",
+                "Julho 2025", "Agosto 2025", "Setembro 2025", "Outubro 2025"
+            ]
+            
+            mes_selecionado = st.selectbox(
+                "Selecione o mês:",
+                meses_disponiveis,
+                index=0
+            )
+            
+            # Converter mês para período
+            mes_num = meses_disponiveis.index(mes_selecionado) + 3  # Março = 3
+            ano = 2025
+            
+            # Calcular início e fim do mês
+            inicio_mes = pd.Timestamp(f'{ano}-{mes_num:02d}-01').tz_localize('UTC')
+            if mes_num == 12:
+                fim_mes = pd.Timestamp(f'{ano+1}-01-01').tz_localize('UTC') - pd.Timedelta(days=1)
+            else:
+                fim_mes = pd.Timestamp(f'{ano}-{mes_num+1:02d}-01').tz_localize('UTC') - pd.Timedelta(days=1)
+            
+            # Encontrar o paciente selecionado
+            paciente_dados = None
+            for p in pacientes_filtrados:
+                if p.get('id') == paciente_selecionado:
+                    paciente_dados = p
+                    break
+            
+            if paciente_dados:
+                # Extrair atividades do paciente no mês selecionado
+                atividades_mes = []
+                activities = paciente_dados.get('activityLogs', []) or []
+                
+                for activity in activities:
+                    data_activity = safe_parse_dt(activity.get('createdAt'))
+                    if data_activity and inicio_mes <= data_activity <= fim_mes:
+                        passos = extrair_passos(activity)
+                        atividades_mes.append({
+                            'data': data_activity,
+                            'passos': passos
+                        })
+                
+                if atividades_mes:
+                    # Criar DataFrame com dados diários
+                    df_diario = pd.DataFrame(atividades_mes)
+                    df_diario['data'] = pd.to_datetime(df_diario['data'])
+                    df_diario['dia'] = df_diario['data'].dt.day
+                    
+                    # Agrupar por dia e somar passos
+                    passos_por_dia = df_diario.groupby('dia')['passos'].sum().reset_index()
+                    
+                    # Criar gráfico de linha para passos diários
+                    fig_diario = px.line(
+                        passos_por_dia,
+                        x='dia',
+                        y='passos',
+                        title=f'Passos Diários - Paciente {paciente_selecionado} - {mes_selecionado}',
+                        color_discrete_sequence=[CHART_COLORS[3]],
+                        markers=True
+                    )
+                    fig_diario.update_layout(
+                        height=400,
+                        margin=dict(l=50, r=50, t=80, b=50),
+                        xaxis_title="Dia do Mês",
+                        yaxis_title="Total de Passos",
+                        xaxis=dict(tickmode='linear', dtick=1)
+                    )
+                    st.plotly_chart(fig_diario, use_container_width=True, height=400)
+                    
+                    # Estatísticas do mês
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Total de Passos no Mês", f"{passos_por_dia['passos'].sum():,}")
+                    with col2:
+                        st.metric("Média Diária", f"{passos_por_dia['passos'].mean():.0f}")
+                    with col3:
+                        st.metric("Dia com Mais Passos", f"{passos_por_dia['passos'].max():,}")
+                    
+                    # Tabela com dados diários
+                    st.markdown("**Dados Diários Detalhados:**")
+                    passos_por_dia['Dia'] = passos_por_dia['dia']
+                    passos_por_dia['Passos'] = passos_por_dia['passos']
+                    st.dataframe(
+                        passos_por_dia[['Dia', 'Passos']],
+                        use_container_width=True,
+                        column_config={
+                            "Dia": st.column_config.NumberColumn("Dia", width="small"),
+                            "Passos": st.column_config.NumberColumn("Passos", format="%,d", width="medium")
+                        }
+                    )
+                else:
+                    st.warning(f"Nenhuma atividade registrada para o paciente {paciente_selecionado} em {mes_selecionado}.")
+        else:
+            st.warning("Nenhum paciente encontrado com ID válido.")
 
     with col_tab_atividades:
         st.markdown("**Dados por Período - Atividades Físicas**")

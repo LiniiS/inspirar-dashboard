@@ -3,7 +3,7 @@ import plotly.express as px
 from utils.colors import CHART_COLORS
 
 def mostrar_ativos(df_recorte):
-    st.subheader('🥧 Distribuição de Pacientes Ativos vs Inativos')
+    st.subheader('Distribuição de Pacientes Ativos vs Inativos')
     st.markdown('Mostra a proporção de pacientes que utilizaram pelo menos uma funcionalidade versus os inativos.')
     
     st.info('**Nota sobre dados pessoais:** Pacientes que solicitaram exclusão de conta e dados pessoais têm seus dados de saúde mantidos para fins médicos, mas todos os dados pessoais (incluindo sexo) são removidos. Nestes casos, o sexo é registrado como "INDEFINIDO (I)" e esses pacientes não são representados no gráfico de distribuição por sexo dos usuários ativos.')
@@ -30,7 +30,7 @@ def mostrar_ativos(df_recorte):
         fig_pizza_ativos = px.pie(
             names=['Ativos', 'Inativos'],
             values=[n_ativos, n_inativos],
-            color_discrete_sequence=[CHART_COLORS[0], CHART_COLORS[1]],
+            color_discrete_sequence=[CHART_COLORS[2], CHART_COLORS[4]],
             title='Distribuição de Pacientes Ativos vs Inativos'
         )
         fig_pizza_ativos.update_layout(

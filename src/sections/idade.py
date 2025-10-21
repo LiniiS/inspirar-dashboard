@@ -4,7 +4,6 @@ import numpy as np
 from utils.colors import CHART_COLORS
 
 def mostrar_idade(df_recorte):
-    st.subheader('📊 Distribuição de Idade dos Pacientes')
     st.markdown('Análise da faixa etária dos pacientes cadastrados, incluindo distribuição geral e por sexo.')
     
     if not df_recorte.empty:

@@ -3,7 +3,7 @@ import pandas as pd
 from dateutil import parser
 
 def mostrar_tabelas(df_recorte, pacientes_recorte):
-    st.subheader('📋 Tabelas Detalhadas com Filtro por Idade')
+    st.subheader('Tabelas Detalhadas com Filtro por Idade')
     st.markdown('Tabela detalhada dos pacientes, filtrável por faixa etária.')
     idade_min, idade_max = st.slider(
         "Faixa de Idade",

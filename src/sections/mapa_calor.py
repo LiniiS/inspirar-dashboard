@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from utils.colors import CHART_COLORS, PRIMARY_DARK, PRIMARY_MEDIUM, PRIMARY_DARKER, PRIMARY_DARKEST
 
 def mostrar_mapa_calor(df_recorte):
-    st.subheader('🔥 Mapa de Calor: Correlação entre Uso de Funcionalidades')
+    st.subheader('Mapa de Calor: Correlação entre Uso de Funcionalidades')
     st.info('Para cada paciente, é verificado se ele utilizou (1) ou não (0) cada funcionalidade ao menos uma vez. '
             'A matriz de correlação mostra o quanto o uso de uma funcionalidade está associado ao uso das outras.')
 
@@ -38,15 +38,11 @@ def mostrar_mapa_calor(df_recorte):
 
     def heatmap_plot(matriz_corr: pd.DataFrame, titulo: str, mostrar_escala: bool = True, altura: int = 420) -> go.Figure:
         """
-        Cria o heatmap mostrando apenas o triângulo superior; diagonal mascarada.
+        Cria o heatmap mostrando a matriz completa.
         Anotações com contraste adaptativo.
         """
-        # Copia para visualização e mascara diagonal + triângulo inferior
+        # Usar matriz completa sem mascarar
         m = matriz_corr.copy()
-        for i in range(m.shape[0]):
-            for j in range(m.shape[1]):
-                if j <= i:
-                    m.iat[i, j] = np.nan
 
         # Limites para escolher paleta
         cmin = np.nanmin(m.values)
@@ -118,7 +114,7 @@ def mostrar_mapa_calor(df_recorte):
             fig_heatmap_masc = heatmap_plot(
                 corr_matrix_masc,
                 titulo=f'Pacientes Masculinos ({len(df_masculino)} pacientes)',
-                mostrar_escala=False
+                mostrar_escala=True
             )
             st.plotly_chart(fig_heatmap_masc, use_container_width=True)
         else:
@@ -134,7 +130,7 @@ def mostrar_mapa_calor(df_recorte):
             fig_heatmap_fem = heatmap_plot(
                 corr_matrix_fem,
                 titulo=f'Pacientes Femininos ({len(df_feminino)} pacientes)',
-                mostrar_escala=False
+                mostrar_escala=True
             )
             st.plotly_chart(fig_heatmap_fem, use_container_width=True)
         else:
@@ -143,7 +139,7 @@ def mostrar_mapa_calor(df_recorte):
 
     # --------- Análise comparativa (se houver dados) ---------
     st.markdown("---")
-    st.subheader('📊 Análise Comparativa das Correlações')
+    st.subheader('Análise Comparativa das Correlações')
 
     if (len(df_masculino) > 1 and len(df_feminino) > 1) and (corr_matrix_masc is not None and corr_matrix_fem is not None):
         col_analise, col_tabela = st.columns([2, 1])

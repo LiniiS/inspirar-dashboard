@@ -5,7 +5,6 @@ import pandas as pd
 from utils.colors import CHART_COLORS
 
 def mostrar_funcionalidades_sexo(df_recorte):
-    st.subheader('👥 Análise de Adesão às Funcionalidades por Sexo')
     st.info('Análise comparativa do uso de funcionalidades entre pacientes masculinos e femininos para identificar padrões de adesão por sexo.')
     
     # Filtrar dados para excluir sexo indefinido ('I')
