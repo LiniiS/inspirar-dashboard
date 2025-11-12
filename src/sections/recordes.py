@@ -4,8 +4,8 @@ import numpy as np
 from dateutil import parser
 
 def mostrar_recordes(pacientes_recorte):
-    st.subheader('Recordes e Destaques')
-    st.markdown('Destaques individuais, como paciente mais ativo baseado na média diária de passos.')
+    st.subheader('Records and Highlights')
+    st.markdown('Individual highlights, such as most active patient based on daily average steps.')
 
     # Encontrar paciente mais ativo baseado na média diária de passos
     paciente_mais_ativo = None
@@ -63,27 +63,27 @@ def mostrar_recordes(pacientes_recorte):
     with col1:
         if paciente_mais_ativo_detalhes:
             st.success(f"""
-            **Paciente Mais Ativo**
+            **Most Active Patient**
             - **ID:** {paciente_mais_ativo_detalhes['id']}
-            - **Conta criada em:** {paciente_mais_ativo_detalhes['data_cadastro'].strftime('%d/%m/%Y')}
-            - **Período analisado:** {paciente_mais_ativo_detalhes['periodo_dias']} dias
-            - **Total de passos:** {paciente_mais_ativo_detalhes['total_passos']:,}
-            - **Média diária:** {paciente_mais_ativo_detalhes['media_diaria']:,.0f} passos/dia
+            - **Account created on:** {paciente_mais_ativo_detalhes['data_cadastro'].strftime('%d/%m/%Y')}
+            - **Analyzed period:** {paciente_mais_ativo_detalhes['periodo_dias']} days
+            - **Total steps:** {paciente_mais_ativo_detalhes['total_passos']:,}
+            - **Daily average:** {paciente_mais_ativo_detalhes['media_diaria']:,.0f} steps/day
             """)
         else:
-            st.warning("📊 Nenhum paciente com registros de atividade física encontrado")
+            st.warning("📊 No patient with physical activity records found")
 
     with col2:
         # Estatísticas gerais
         if todos_passos:
             st.info(f"""
-            **📊 Estatísticas Gerais**
-            - Pacientes ativos: {pacientes_ativos}
-            - Média de passos: {np.mean(todos_passos):,.0f}
-            - Total de passos: {sum(todos_passos):,}
-            - Mediana: {np.median(todos_passos):,.0f}
+            **📊 General Statistics**
+            - Active patients: {pacientes_ativos}
+            - Average steps: {np.mean(todos_passos):,.0f}
+            - Total steps: {sum(todos_passos):,}
+            - Median: {np.median(todos_passos):,.0f}
             """)
         else:
-            st.info("📊 Nenhum dado de atividade física encontrado")
+            st.info("📊 No physical activity data found")
 
     st.markdown('---') 

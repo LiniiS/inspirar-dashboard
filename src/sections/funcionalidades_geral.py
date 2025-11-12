@@ -5,11 +5,11 @@ import pandas as pd
 from utils.colors import CHART_COLORS
 
 def mostrar_funcionalidades_geral(df_recorte):
-    st.markdown('Visão global do uso das funcionalidades do aplicativo pelos pacientes.')
+    st.markdown('Global overview of app feature usage by patients.')
     
     # --- Distribuição do Número de Funcionalidades Utilizadas por Paciente ---
-    st.subheader('Distribuição do Número de Funcionalidades Utilizadas por Paciente')
-    st.info('Para cada paciente, é contado quantas funcionalidades diferentes ele utilizou ao menos uma vez (diário de sintomas, ACQ, atividade física, prescrição, crise). O gráfico mostra a distribuição dessa contagem entre todos os pacientes.')
+    st.subheader('Distribution of Number of Features Used per Patient')
+    st.info('For each patient, it counts how many different features they used at least once (symptom diary, ACQ, physical activity, prescription, crisis). The chart shows the distribution of this count among all patients.')
     
     def conta_funcionalidades(row):
         return sum([
@@ -31,60 +31,60 @@ def mostrar_funcionalidades_geral(df_recorte):
         fig_func_count = px.bar(
             x=dist_funcionalidades.index,
             y=dist_funcionalidades.values,
-            labels={'x': 'Número de Funcionalidades', 'y': 'Número de Pacientes'},
-            title='Distribuição do Número de Funcionalidades Utilizadas',
+            labels={'x': 'Number of Features', 'y': 'Number of Patients'},
+            title='Distribution of Number of Features Used',
             color_discrete_sequence=[CHART_COLORS[0]]
         )
         fig_func_count.update_layout(
             height=400,
             margin=dict(l=50, r=50, t=80, b=50),
-            xaxis_title="Número de Funcionalidades Utilizadas",
-            yaxis_title="Número de Pacientes"
+            xaxis_title="Number of Features Used",
+            yaxis_title="Number of Patients"
         )
         st.plotly_chart(fig_func_count, use_container_width=True, height=400)
     
     with col_stats:
-        st.markdown("**Estatísticas de Uso:**")
+        st.markdown("**Usage Statistics:**")
         
         # Calcular estatísticas
         media_func = df_recorte['n_funcionalidades'].mean()
         mediana_func = df_recorte['n_funcionalidades'].median()
         moda_func = df_recorte['n_funcionalidades'].mode().iloc[0] if not df_recorte['n_funcionalidades'].mode().empty else 0
         
-        st.metric("Média de Funcionalidades", f"{media_func:.1f}")
-        st.metric("Mediana", f"{mediana_func:.0f}")
-        st.metric("Moda (mais comum)", f"{moda_func:.0f}")
+        st.metric("Average Features", f"{media_func:.1f}")
+        st.metric("Median", f"{mediana_func:.0f}")
+        st.metric("Mode (most common)", f"{moda_func:.0f}")
         
         # Distribuição percentual
-        st.markdown("**Distribuição:**")
+        st.markdown("**Distribution:**")
         for n_func, count in dist_funcionalidades.items():
             perc = (count / len(df_recorte)) * 100
-            st.markdown(f"• **{n_func} func:** {count} pacientes ({perc:.1f}%)")
+            st.markdown(f"• **{n_func} features:** {count} patients ({perc:.1f}%)")
         
         # Pacientes ativos vs inativos
         pacientes_ativos = len(df_recorte[df_recorte['n_funcionalidades'] > 0])
         pacientes_inativos = len(df_recorte[df_recorte['n_funcionalidades'] == 0])
         
         st.markdown("---")
-        st.markdown("**Resumo Geral:**")
-        st.markdown(f"• **Ativos:** {pacientes_ativos} pacientes")
-        st.markdown(f"• **Inativos:** {pacientes_inativos} pacientes")
+        st.markdown("**General Summary:**")
+        st.markdown(f"• **Active:** {pacientes_ativos} patients")
+        st.markdown(f"• **Inactive:** {pacientes_inativos} patients")
         taxa_ativacao = (pacientes_ativos / len(df_recorte)) * 100 if len(df_recorte) > 0 else 0
-        st.markdown(f"• **Taxa de Ativação:** {taxa_ativacao:.1f}%")
+        st.markdown(f"• **Activation Rate:** {taxa_ativacao:.1f}%")
     
     st.markdown('---')
 
     # --- Funcionalidades Mais Utilizadas ---
-    st.subheader('Ranking de Funcionalidades Mais Utilizadas')
-    st.info('Para cada funcionalidade, é contado o número de pacientes que a utilizou ao menos uma vez no período analisado. O gráfico mostra o ranking das funcionalidades mais acessadas.')
+    st.subheader('Most Used Features Ranking')
+    st.info('For each feature, it counts the number of patients who used it at least once in the analyzed period. The chart shows the ranking of the most accessed features.')
     
     # Calcular uso de cada funcionalidade
     funcionalidades = {
-        'Diários de Sintomas': df_recorte['symptomDiaries'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum(),
-        'ACQ (Controle Asma)': df_recorte['acqs'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum(),
-        'Atividades Físicas': df_recorte['activityLogs'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum(),
-        'Prescrições': df_recorte['prescriptions'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum(),
-        'Registro de Crises': df_recorte['crisis'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum()
+        'Symptom Diaries': df_recorte['symptomDiaries'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum(),
+        'ACQ (Asthma Control)': df_recorte['acqs'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum(),
+        'Physical Activities': df_recorte['activityLogs'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum(),
+        'Medications': df_recorte['prescriptions'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum(),
+        'Crisis Records': df_recorte['crisis'].apply(lambda x: len(x) > 0 if isinstance(x, list) else False).sum()
     }
     
     # Layout lado a lado: gráfico e tabela
@@ -98,21 +98,21 @@ def mostrar_funcionalidades_geral(df_recorte):
             x=list(func_ordenadas.values()),
             y=list(func_ordenadas.keys()),
             orientation='h',
-            title="Ranking de Funcionalidades por Número de Usuários",
-            labels={'x': 'Número de Usuários', 'y': 'Funcionalidade'},
+            title="Feature Ranking by Number of Users",
+            labels={'x': 'Number of Users', 'y': 'Feature'},
             color_discrete_sequence=[CHART_COLORS[1]]
         )
         fig_funcionalidades.update_layout(
             height=400,
             margin=dict(l=50, r=50, t=80, b=50),
-            xaxis_title="Número de Usuários",
-            yaxis_title="Funcionalidades",
+            xaxis_title="Number of Users",
+            yaxis_title="Features",
             showlegend=False
         )
         st.plotly_chart(fig_funcionalidades, use_container_width=True, height=400)
     
     with col_tabela:
-        st.markdown("**Dados Detalhados:**")
+        st.markdown("**Detailed Data:**")
         
         # Criar tabela com ranking
         tabela_ranking = []
@@ -121,10 +121,10 @@ def mostrar_funcionalidades_geral(df_recorte):
         for i, (func_nome, usuarios) in enumerate(func_ordenadas.items(), 1):
             taxa_uso = (usuarios / total_pacientes) * 100 if total_pacientes > 0 else 0
             tabela_ranking.append({
-                'Posição': f"{i}º",
-                'Funcionalidade': func_nome,
-                'Usuários': usuarios,
-                'Taxa de Uso': f"{taxa_uso:.1f}%"
+                'Position': f"{i}",
+                'Feature': func_nome,
+                'Users': usuarios,
+                'Usage Rate': f"{taxa_uso:.1f}%"
             })
         
         df_ranking = pd.DataFrame(tabela_ranking)
@@ -133,10 +133,10 @@ def mostrar_funcionalidades_geral(df_recorte):
             df_ranking,
             use_container_width=True,
             column_config={
-                "Posição": st.column_config.TextColumn("Pos.", width="small"),
-                "Funcionalidade": st.column_config.TextColumn("Funcionalidade", width="large"),
-                "Usuários": st.column_config.NumberColumn("Usuários", width="small"),
-                "Taxa de Uso": st.column_config.TextColumn("Taxa", width="small")
+                "Position": st.column_config.TextColumn("Pos.", width="small"),
+                "Feature": st.column_config.TextColumn("Feature", width="large"),
+                "Users": st.column_config.NumberColumn("Users", width="small"),
+                "Usage Rate": st.column_config.TextColumn("Rate", width="small")
             }
         )
         
@@ -149,13 +149,13 @@ def mostrar_funcionalidades_geral(df_recorte):
             taxa_mais_usada = (list(func_ordenadas.values())[0] / total_pacientes) * 100
             taxa_menos_usada = (list(func_ordenadas.values())[-1] / total_pacientes) * 100
             
-            st.markdown(f"• **Mais usada:** {mais_usada}")
-            st.markdown(f"• **Taxa:** {taxa_mais_usada:.1f}%")
-            st.markdown(f"• **Menos usada:** {menos_usada}")
-            st.markdown(f"• **Taxa:** {taxa_menos_usada:.1f}%")
+            st.markdown(f"• **Most used:** {mais_usada}")
+            st.markdown(f"• **Rate:** {taxa_mais_usada:.1f}%")
+            st.markdown(f"• **Least used:** {menos_usada}")
+            st.markdown(f"• **Rate:** {taxa_menos_usada:.1f}%")
             
             diferenca = taxa_mais_usada - taxa_menos_usada
-            st.markdown(f"• **Diferença:** {diferenca:.1f}%")
+            st.markdown(f"• **Difference:** {diferenca:.1f}%")
         
         # Botão de download
         csv_ranking = df_ranking.to_csv(index=False, encoding='utf-8-sig')
@@ -169,13 +169,13 @@ def mostrar_funcionalidades_geral(df_recorte):
     st.markdown('---')
     
     # --- Distribuição por Sexo (Resumo) ---
-    st.subheader('Distribuição Geral por Sexo')
-    st.markdown('Visão resumida da distribuição de pacientes por sexo.')
+    st.subheader('General Distribution by Sex')
+    st.markdown('Summary view of patient distribution by sex.')
     
     if 'sex' in df_recorte.columns:
         # Calcular distribuição por sexo
         sex_counts = df_recorte['sex'].value_counts(dropna=False)
-        sex_mapping = {'M': 'Masculino', 'F': 'Feminino', 'I': 'Indefinido'}
+        sex_mapping = {'M': 'Male', 'F': 'Female', 'I': 'Undefined'}
         
         # Layout lado a lado: gráfico de pizza e métricas
         col_pizza, col_metricas = st.columns([2, 1])
@@ -187,7 +187,7 @@ def mostrar_funcionalidades_geral(df_recorte):
             fig_sexo = px.pie(
                 values=sex_counts.values,
                 names=sex_labels,
-                title="Distribuição de Pacientes por Sexo",
+                title="Patient Distribution by Sex",
                 color_discrete_sequence=CHART_COLORS[2:5]
             )
             fig_sexo.update_layout(
@@ -197,7 +197,7 @@ def mostrar_funcionalidades_geral(df_recorte):
             st.plotly_chart(fig_sexo, use_container_width=True, height=400)
         
         with col_metricas:
-            st.markdown("**Distribuição Detalhada:**")
+            st.markdown("**Detailed Distribution:**")
             
             total_pacientes = len(df_recorte)
             for sex_code, count in sex_counts.items():
@@ -206,17 +206,17 @@ def mostrar_funcionalidades_geral(df_recorte):
                 
                 st.metric(
                     label=sex_name,
-                    value=f"{count} pacientes",
+                    value=f"{count} patients",
                     delta=f"{percentage:.1f}%"
                 )
             
             st.markdown("---")
-            st.markdown("**Observações:**")
+            st.markdown("**Notes:**")
             
             # Verificar se há pacientes com sexo indefinido
             indefinidos = sex_counts.get('I', 0)
             if indefinidos > 0:
-                st.markdown(f"• **{indefinidos} paciente(s)** com sexo indefinido devido à política de exclusão de dados pessoais")
+                st.markdown(f"• **{indefinidos} patient(s)** with undefined sex due to personal data exclusion policy")
             
             # Mostrar proporção masculino/feminino (excluindo indefinidos)
             masculino = sex_counts.get('M', 0)
@@ -226,8 +226,8 @@ def mostrar_funcionalidades_geral(df_recorte):
             if total_definido > 0:
                 prop_masc = (masculino / total_definido) * 100
                 prop_fem = (feminino / total_definido) * 100
-                st.markdown(f"• **Proporção M/F:** {prop_masc:.1f}% / {prop_fem:.1f}%")
+                st.markdown(f"• **M/F Proportion:** {prop_masc:.1f}% / {prop_fem:.1f}%")
     else:
-        st.warning('Campo "sex" não encontrado nos dados.')
+        st.warning('Field "sex" not found in data.')
     
     st.markdown('---')
