@@ -3,10 +3,10 @@ import pandas as pd
 from dateutil import parser
 
 def mostrar_tabelas(df_recorte, pacientes_recorte):
-    st.subheader('Tabelas Detalhadas com Filtro por Idade')
-    st.markdown('Tabela detalhada dos pacientes, filtrável por faixa etária.')
+    st.subheader('Detailed Tables with Age Filter')
+    st.markdown('Detailed patient table, filterable by age range.')
     idade_min, idade_max = st.slider(
-        "Faixa de Idade",
+        "Age Range",
         min_value=int(df_recorte['age'].min()) if not df_recorte.empty else 0,
         max_value=int(df_recorte['age'].max()) if not df_recorte.empty else 100,
         value=(18, 80)
@@ -24,9 +24,9 @@ def mostrar_tabelas(df_recorte, pacientes_recorte):
     ]
     df_exibicao = df_idade[colunas_exibicao].copy()
     df_exibicao.columns = [
-        'ID', 'Idade', 'Altura (m)', 'Peso (kg)',
-        'Total Diários', 'Total ACQs', 'Total Atividades',
-        'Total Prescrições', 'Total Crises'
+        'ID', 'Age', 'Height (m)', 'Weight (kg)',
+        'Total Diaries', 'Total ACQs', 'Total Activities',
+        'Total Medications', 'Total Crises'
     ]
     st.dataframe(df_exibicao, use_container_width=True)
     st.markdown('---') 

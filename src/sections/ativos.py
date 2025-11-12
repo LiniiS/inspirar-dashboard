@@ -3,10 +3,10 @@ import plotly.express as px
 from utils.colors import CHART_COLORS
 
 def mostrar_ativos(df_recorte):
-    st.subheader('Distribuição de Pacientes Ativos vs Inativos')
-    st.markdown('Mostra a proporção de pacientes que utilizaram pelo menos uma funcionalidade versus os inativos.')
+    st.subheader('Active vs Inactive Patients Distribution')
+    st.markdown('Shows the proportion of patients who used at least one feature versus inactive ones.')
     
-    st.info('**Nota sobre dados pessoais:** Pacientes que solicitaram exclusão de conta e dados pessoais têm seus dados de saúde mantidos para fins médicos, mas todos os dados pessoais (incluindo sexo) são removidos. Nestes casos, o sexo é registrado como "INDEFINIDO (I)" e esses pacientes não são representados no gráfico de distribuição por sexo dos usuários ativos.')
+    st.info('**Note on personal data:** Patients who requested account and personal data deletion have their health data kept for medical purposes, but all personal data (including sex) is removed. In these cases, sex is recorded as "UNDEFINED (I)" and these patients are not represented in the sex distribution chart of active users.')
     
     def paciente_ativo(row):
         return any([
@@ -28,10 +28,10 @@ def mostrar_ativos(df_recorte):
     with col1:
         # Gráfico de pizza - Ativos vs Inativos
         fig_pizza_ativos = px.pie(
-            names=['Ativos', 'Inativos'],
+            names=['Active', 'Inactive'],
             values=[n_ativos, n_inativos],
             color_discrete_sequence=[CHART_COLORS[2], CHART_COLORS[4]],
-            title='Distribuição de Pacientes Ativos vs Inativos'
+            title='Active vs Inactive Patients Distribution'
         )
         fig_pizza_ativos.update_layout(
             height=400,
@@ -52,14 +52,14 @@ def mostrar_ativos(df_recorte):
                 sexo_counts = df_ativos_sexo['sex'].value_counts()
                 
                 # Mapear códigos para nomes completos
-                sexo_labels = {'M': 'Masculino', 'F': 'Feminino'}
+                sexo_labels = {'M': 'Male', 'F': 'Female'}
                 sexo_counts_labeled = sexo_counts.rename(index=sexo_labels)
                 
                 fig_sexo_ativos = px.pie(
                     values=sexo_counts_labeled.values,
                     names=sexo_counts_labeled.index,
                     color_discrete_sequence=CHART_COLORS[2:4],
-                    title='Distribuição por Sexo - Pacientes Ativos'
+                    title='Distribution by Sex - Active Patients'
                 )
                 fig_sexo_ativos.update_layout(
                     height=400,
@@ -68,11 +68,11 @@ def mostrar_ativos(df_recorte):
                 st.plotly_chart(fig_sexo_ativos, use_container_width=True, height=400)
                 
                 # Métricas resumidas
-                st.markdown(f"**Total de pacientes ativos: {len(df_ativos)}**")
-                st.markdown(f"**Ativos por sexo:** Masculino: {sexo_counts.get('M', 0)}, Feminino: {sexo_counts.get('F', 0)}")
+                st.markdown(f"**Total active patients: {len(df_ativos)}**")
+                st.markdown(f"**Active by sex:** Male: {sexo_counts.get('M', 0)}, Female: {sexo_counts.get('F', 0)}")
             else:
-                st.warning("Não há pacientes ativos com sexo definido para análise.")
+                st.warning("No active patients with defined sex available for analysis.")
         else:
-            st.warning("Não há pacientes ativos para análise de distribuição por sexo.")
+            st.warning("No active patients available for sex distribution analysis.")
     
     st.markdown('---') 
