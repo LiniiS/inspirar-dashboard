@@ -1,12 +1,11 @@
 import streamlit as st
 import plotly.express as px
 from utils.colors import CHART_COLORS
+from utils.translations import t
 
 def mostrar_ativos(df_recorte):
-    st.subheader('Active vs Inactive Patients Distribution')
-    st.markdown('Shows the proportion of patients who used at least one feature versus inactive ones.')
-    
-    st.info('**Note on personal data:** Patients who requested account and personal data deletion have their health data kept for medical purposes, but all personal data (including sex) is removed. In these cases, sex is recorded as "UNDEFINED (I)" and these patients are not represented in the sex distribution chart of active users.')
+    st.subheader(t('sections.ativos.title'))
+    st.markdown(t('sections.ativos.description'))
     
     def paciente_ativo(row):
         return any([
@@ -28,10 +27,10 @@ def mostrar_ativos(df_recorte):
     with col1:
         # Gráfico de pizza - Ativos vs Inativos
         fig_pizza_ativos = px.pie(
-            names=['Active', 'Inactive'],
+            names=[t('sections.ativos.active'), t('sections.ativos.inactive')],
             values=[n_ativos, n_inativos],
             color_discrete_sequence=[CHART_COLORS[2], CHART_COLORS[4]],
-            title='Active vs Inactive Patients Distribution'
+            title=t('sections.ativos.distribution_title')
         )
         fig_pizza_ativos.update_layout(
             height=400,
@@ -44,35 +43,32 @@ def mostrar_ativos(df_recorte):
         df_ativos = df_recorte[df_recorte['is_ativo'] == True]
         
         if len(df_ativos) > 0:
-            # Filtrar apenas sexos válidos (excluir 'I' - indefinido)
-            df_ativos_sexo = df_ativos[df_ativos['sex'].isin(['M', 'F'])]
+            # Contar pacientes ativos por gênero
+            gender_counts = df_ativos['gender'].value_counts()
             
-            if len(df_ativos_sexo) > 0:
-                # Contar pacientes ativos por sexo
-                sexo_counts = df_ativos_sexo['sex'].value_counts()
-                
+            if len(gender_counts) > 0:
                 # Mapear códigos para nomes completos
-                sexo_labels = {'M': 'Male', 'F': 'Female'}
-                sexo_counts_labeled = sexo_counts.rename(index=sexo_labels)
+                gender_labels = {'male': t('sections.ativos.male'), 'female': t('sections.ativos.female')}
+                gender_counts_labeled = gender_counts.rename(index=gender_labels)
                 
-                fig_sexo_ativos = px.pie(
-                    values=sexo_counts_labeled.values,
-                    names=sexo_counts_labeled.index,
+                fig_gender_ativos = px.pie(
+                    values=gender_counts_labeled.values,
+                    names=gender_counts_labeled.index,
                     color_discrete_sequence=CHART_COLORS[2:4],
-                    title='Distribution by Sex - Active Patients'
+                    title=t('sections.ativos.distribution_by_sex')
                 )
-                fig_sexo_ativos.update_layout(
+                fig_gender_ativos.update_layout(
                     height=400,
                     margin=dict(l=50, r=50, t=80, b=50)
                 )
-                st.plotly_chart(fig_sexo_ativos, use_container_width=True, height=400)
+                st.plotly_chart(fig_gender_ativos, use_container_width=True, height=400)
                 
                 # Métricas resumidas
-                st.markdown(f"**Total active patients: {len(df_ativos)}**")
-                st.markdown(f"**Active by sex:** Male: {sexo_counts.get('M', 0)}, Female: {sexo_counts.get('F', 0)}")
+                st.markdown(f"**{t('sections.ativos.total_active')}: {len(df_ativos)}**")
+                st.markdown(f"**{t('sections.ativos.active_by_sex')}:** {t('sections.ativos.male')}: {gender_counts.get('male', 0)}, {t('sections.ativos.female')}: {gender_counts.get('female', 0)}")
             else:
-                st.warning("No active patients with defined sex available for analysis.")
+                st.warning(t('sections.ativos.no_active_sex'))
         else:
-            st.warning("No active patients available for sex distribution analysis.")
+            st.warning(t('sections.ativos.no_active'))
     
     st.markdown('---') 

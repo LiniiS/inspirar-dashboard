@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from utils.colors import CHART_COLORS, METRIC_COLORS
+from utils.translations import t
 
 def mostrar_status_acq(pacientes_recorte):
     # Coletar apenas a primeira semana de ACQ de cada paciente
@@ -46,10 +47,13 @@ def mostrar_status_acq(pacientes_recorte):
                         
                         # Armazenar detalhes do paciente para a tabela
                         data_primeiro_acq = primeiro_acq.get('createdAt') or primeiro_acq.get('answeredAt') or primeiro_acq.get('date') or 'N/A'
+                        # Mapear gender para exibição
+                        gender_raw = paciente.get('gender', '')
+                        gender_display = t('sections.ativos.male') if gender_raw == 'male' else t('sections.ativos.female') if gender_raw == 'female' else gender_raw
                         acq_detalhes_pacientes.append({
                             'Patient ID': paciente.get('id', 'N/A'),
                             'Age': paciente.get('age', 'N/A'),
-                            'Sex': paciente.get('sex', 'N/A'),
+                            'Gender': gender_display,
                             'First ACQ Date': data_primeiro_acq,
                             'ACQ Score': f"{score_float:.2f}",
                             'Status': status,
@@ -65,16 +69,16 @@ def mostrar_status_acq(pacientes_recorte):
     taxa_preenchimento = (pacientes_com_acq / total_pacientes * 100) if total_pacientes > 0 else 0
     
     if acq_primeira_semana:
-        st.subheader('Asthma Control Status (ACQ) - First Week')
-        st.info('Analysis of ACQ (Asthma Control Questionnaire) considering only the **first temporal completion** of each patient (ordered by creation/answer date). This provides a more accurate view of initial asthma control, ensuring consistency for medical analysis.')
+        st.subheader(t('sections.status_acq.title'))
+        st.info(t('sections.status_acq.description'))
         
         # Métricas de engajamento
-        st.markdown('### ACQ Engagement Metrics')
+        st.markdown(f"### {t('sections.status_acq.engagement_metrics')}")
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Total Patients", total_pacientes)
-        col2.metric("With ACQ", pacientes_com_acq)
-        col3.metric("Without ACQ", pacientes_sem_acq)
-        col4.metric("Completion Rate", f"{taxa_preenchimento:.1f}%")
+        col1.metric(t('sections.status_acq.total_patients'), total_pacientes)
+        col2.metric(t('sections.status_acq.with_acq'), pacientes_com_acq)
+        col3.metric(t('sections.status_acq.without_acq'), pacientes_sem_acq)
+        col4.metric(t('sections.status_acq.completion_rate'), f"{taxa_preenchimento:.1f}%")
         
         # Criar DataFrame para análise
         df_acq = pd.DataFrame({
@@ -83,16 +87,16 @@ def mostrar_status_acq(pacientes_recorte):
         })
         
         # Estatísticas descritivas
-        st.markdown('These statistics summarize the asthmatic condition recorded in the **first ACQ questionnaire** completed by each patient, in the **first week after account creation**. They reflect the initial state of asthma control, before any follow-up effects.')
+        st.markdown(t('sections.status_acq.statistics_description'))
         col1, col2, col3, col4 = st.columns(4)
         
         valores_validos = df_acq['score'].dropna()
-        col1.metric('Mean', f'{valores_validos.mean():.2f}')
-        col2.metric('Std Deviation', f'{valores_validos.std():.2f}')
-        col3.metric('Median', f'{valores_validos.median():.2f}')
-        col4.metric('IQR (25%-75%)', f'{valores_validos.quantile(0.25):.2f} - {valores_validos.quantile(0.75):.2f}')
+        col1.metric(t('sections.status_acq.mean'), f'{valores_validos.mean():.2f}')
+        col2.metric(t('sections.status_acq.std_deviation'), f'{valores_validos.std():.2f}')
+        col3.metric(t('sections.status_acq.median'), f'{valores_validos.median():.2f}')
+        col4.metric(t('sections.status_acq.iqr'), f'{valores_validos.quantile(0.25):.2f} - {valores_validos.quantile(0.75):.2f}')
         
-        st.markdown('### Visualizations - First Week')
+        st.markdown(f"### {t('sections.status_acq.visualizations')}")
         col1, col2 = st.columns(2)
         
         with col1:
@@ -100,11 +104,11 @@ def mostrar_status_acq(pacientes_recorte):
                 df_acq, 
                 y='score', 
                 points='all', 
-                title="ACQ Scores Distribution",
+                title=t('charts.titles.acq_scores_distribution'),
                 color_discrete_sequence=[CHART_COLORS[0]]
             )
             fig_box.update_layout(
-                yaxis_title="ACQ Score",
+                yaxis_title=t('charts.labels.acq_score'),
                 showlegend=False,
                 height=400,
                 margin=dict(l=50, r=50, t=80, b=50)
@@ -120,7 +124,7 @@ def mostrar_status_acq(pacientes_recorte):
                 fig_pie = px.pie(
                     values=status_counts.values,
                     names=status_counts.index,
-                    title="Asthma Control Status",
+                    title=t('charts.titles.control_status'),
                     color_discrete_sequence=CHART_COLORS[:len(status_counts)]
                 )
                 fig_pie.update_layout(
@@ -130,8 +134,8 @@ def mostrar_status_acq(pacientes_recorte):
                 st.plotly_chart(fig_pie, use_container_width=True, height=400)
         
         # Tabela detalhada dos pacientes
-        st.markdown('### Patient Details - First ACQ')
-        st.info('Table with details of the first ACQ completion of each patient, including age, sex, date, score and control status.')
+        st.markdown(f"### {t('sections.status_acq.patient_details')}")
+        st.info(t('sections.status_acq.patient_details_info'))
         
         if acq_detalhes_pacientes:
             # Criar DataFrame para a tabela
@@ -145,35 +149,35 @@ def mostrar_status_acq(pacientes_recorte):
             df_detalhes['First ACQ Date'] = df_detalhes['First ACQ Date'].dt.strftime('%d/%m/%Y %H:%M')
             
             # Filtros para a tabela
-            st.markdown('#### Table Filters')
+            st.markdown(f"#### {t('sections.status_acq.table_filters')}")
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
                 # Filtro por status
-                status_options = ['All'] + list(df_detalhes['Status'].unique())
-                status_filtro = st.selectbox('Status:', status_options)
+                status_options = [t('sections.status_acq.all')] + list(df_detalhes['Status'].unique())
+                status_filtro = st.selectbox(f"{t('sections.status_acq.status')}:", status_options)
             
             with col2:
-                # Filtro por sexo
-                sexo_options = ['All'] + list(df_detalhes['Sex'].unique())
-                sexo_filtro = st.selectbox('Sex:', sexo_options)
+                # Filtro por gênero
+                gender_options = [t('sections.status_acq.all')] + list(df_detalhes['Gender'].unique())
+                gender_filtro = st.selectbox(f"{t('sections.status_acq.sex')}:", gender_options)
             
             with col3:
                 # Filtro por score mínimo
-                score_min = st.number_input('Min Score:', min_value=0.0, max_value=6.0, value=0.0, step=0.1)
+                score_min = st.number_input(f"{t('sections.status_acq.min_score')}:", min_value=0.0, max_value=6.0, value=0.0, step=0.1)
             
             with col4:
                 # Filtro por score máximo
-                score_max = st.number_input('Max Score:', min_value=0.0, max_value=6.0, value=6.0, step=0.1)
+                score_max = st.number_input(f"{t('sections.status_acq.max_score')}:", min_value=0.0, max_value=6.0, value=6.0, step=0.1)
             
             # Aplicar filtros
             df_filtrado = df_detalhes.copy()
             
-            if status_filtro != 'All':
+            if status_filtro != t('sections.status_acq.all'):
                 df_filtrado = df_filtrado[df_filtrado['Status'] == status_filtro]
             
-            if sexo_filtro != 'All':
-                df_filtrado = df_filtrado[df_filtrado['Sex'] == sexo_filtro]
+            if gender_filtro != t('sections.status_acq.all'):
+                df_filtrado = df_filtrado[df_filtrado['Gender'] == gender_filtro]
             
             # Converter Score ACQ para float para filtro
             df_filtrado['ACQ Score'] = pd.to_numeric(df_filtrado['ACQ Score'], errors='coerce')
@@ -182,37 +186,37 @@ def mostrar_status_acq(pacientes_recorte):
                 (df_filtrado['ACQ Score'] <= score_max)
             ]
             
-            st.markdown(f"**Filtered patients: {len(df_filtrado)} of {len(df_detalhes)}**")
+            st.markdown(f"**{t('sections.status_acq.filtered_patients', filtered=len(df_filtrado), total=len(df_detalhes))}**")
             
             # Exibir tabela
             st.dataframe(
                 df_filtrado,
                 use_container_width=True,
                 column_config={
-                    "Patient ID": st.column_config.TextColumn("Patient ID", width="medium"),
-                    "Age": st.column_config.NumberColumn("Age", width="small"),
-                    "Sex": st.column_config.TextColumn("Sex", width="small"),
-                    "First ACQ Date": st.column_config.TextColumn("First ACQ Date", width="medium"),
-                    "ACQ Score": st.column_config.NumberColumn("ACQ Score", format="%.2f", width="small"),
-                    "Status": st.column_config.TextColumn("Status", width="small"),
-                    "Total ACQs": st.column_config.NumberColumn("Total ACQs", width="small")
+                    "Patient ID": st.column_config.TextColumn(t('tables.patient_id'), width="medium"),
+                    "Age": st.column_config.NumberColumn(t('tables.age'), width="small"),
+                    "Gender": st.column_config.TextColumn(t('tables.sex'), width="small"),
+                    "First ACQ Date": st.column_config.TextColumn(t('tables.first_acq_date'), width="medium"),
+                    "ACQ Score": st.column_config.NumberColumn(t('tables.acq_score'), format="%.2f", width="small"),
+                    "Status": st.column_config.TextColumn(t('tables.status'), width="small"),
+                    "Total ACQs": st.column_config.NumberColumn(t('tables.total_acqs'), width="small")
                 }
             )
             
             # Resumo da tabela
-            st.markdown(f"**Total patients with valid ACQ in table: {len(df_filtrado)}**")
+            st.markdown(f"**{t('sections.status_acq.total_with_valid_acq', total=len(df_filtrado))}**")
             
             # Botão de download da tabela (dados filtrados)
             csv = df_filtrado.to_csv(index=False, encoding='utf-8-sig')
             st.download_button(
-                label="📥 Download Table (CSV)",
+                label=t('sections.status_acq.download_table'),
                 data=csv,
                 file_name=f"acq_primeira_semana_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv",
-                help="Download table with details of the first ACQ of each patient"
+                help=t('sections.status_acq.download_help')
             )
     else:
-        st.subheader('Asthma Control Status (ACQ)')
-        st.warning('No ACQ records found for the first week of patients in the selected period.')
+        st.subheader(t('sections.status_acq.title_no_data'))
+        st.warning(t('sections.status_acq.no_data'))
     
     st.markdown('---') 

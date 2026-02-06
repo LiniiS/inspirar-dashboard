@@ -4,24 +4,18 @@ import pandas as pd
 import plotly.express as px
 from dateutil import parser
 from utils.colors import CHART_COLORS
+from utils.translations import t
 
 def mostrar_prescricoes_semanais(pacientes_recorte):
-    st.info("This section shows weekly medication intake behavior: analysis considers only patients with accounts created from March 2025 onwards.")
+    st.info(t('sections.prescricoes_semanais.description'))
     
     # Período fixo de extração dos dados
     data_inicio = pd.Timestamp('2025-03-01').tz_localize('UTC')
     data_fim = pd.Timestamp('2025-10-08').tz_localize('UTC')
 
-    # Filtrar pacientes criados a partir de março de 2025
-    pacientes_filtrados = []
-    data_limite = pd.Timestamp('2025-03-01').tz_localize('UTC')
-    for paciente in pacientes_recorte:
-        data_cadastro = paciente.get('createdAt')
-        if data_cadastro:
-            if isinstance(data_cadastro, str):
-                data_cadastro = parser.parse(data_cadastro)
-            if data_cadastro >= data_limite:
-                pacientes_filtrados.append(paciente)
+    # pacientes_recorte já vem filtrado do dashboard.py (createdAt >= 2025-03-01)
+    # Garante que todos os gráficos considerem apenas contas criadas a partir de março/2025
+    pacientes_filtrados = pacientes_recorte
     
     # Converter números de semana para períodos de data legíveis
     def formatar_periodo_semana(semana_num):
@@ -36,12 +30,12 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
             return f"{mes_inicio} {inicio_semana.day} - {mes_fim} {fim_semana.day}"
     
     # Criar tabs para separar as duas análises
-    tab1, tab2 = st.tabs(["📊 Administrations by Week", "📋 Prescriptions by Week"])
+    tab1, tab2 = st.tabs([t('sections.prescricoes_semanais.tab_administrations'), t('sections.prescricoes_semanais.tab_prescriptions')])
     
     # ========== TAB 1: ADMINISTRATIONS BY WEEK ==========
     with tab1:
-        st.subheader("Total Administrations (Medication Intakes) by Week")
-        st.info("This analysis counts each **administration** (medication intake) that occurred in each week period.")
+        st.subheader(t('sections.prescricoes_semanais.admin_title'))
+        st.info(t('sections.prescricoes_semanais.admin_info'))
         
         # Calcular dados semanais de administrations
         semanas_administrations = {}
@@ -131,7 +125,7 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
             st.plotly_chart(fig_usuarios_admin, use_container_width=True, height=300)
         
         with col_tab_admin:
-            st.markdown("**Data by Period**")
+            st.markdown(f"**{t('sections.prescricoes_semanais.data_by_period')}**")
             df_exib_admin = df_admin_semanas[['Period', 'Total Administrations', 'Active Users']].copy()
             df_exib_admin['Total Administrations'] = df_exib_admin['Total Administrations'].astype(int)
             df_exib_admin['Active Users'] = df_exib_admin['Active Users'].astype(int)
@@ -140,21 +134,21 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
                 df_exib_admin,
                 use_container_width=True,
                 column_config={
-                    "Period": st.column_config.TextColumn("Period", width="medium"),
+                    "Period": st.column_config.TextColumn(t('tables.period'), width="medium"),
                     "Total Administrations": st.column_config.NumberColumn("Total Administrations", width="medium"),
-                    "Active Users": st.column_config.NumberColumn("Active Users", width="small")
+                    "Active Users": st.column_config.NumberColumn(t('tables.active_users'), width="small")
                 }
             )
             
-            st.markdown(f"**Total periods: {len(df_admin_semanas)}**")
-            st.markdown(f"**Total administrations: {df_admin_semanas['Total Administrations'].sum()}**")
-            st.markdown(f"**Peak administrations/week: {df_admin_semanas['Total Administrations'].max()}**")
-            st.markdown(f"**Peak active users: {df_admin_semanas['Active Users'].max()}**")
+            st.markdown(f"**{t('sections.prescricoes_semanais.total_periods')}: {len(df_admin_semanas)}**")
+            st.markdown(f"**{t('sections.prescricoes_semanais.total_administrations')}: {df_admin_semanas['Total Administrations'].sum()}**")
+            st.markdown(f"**{t('sections.prescricoes_semanais.peak_admin_week')}: {df_admin_semanas['Total Administrations'].max()}**")
+            st.markdown(f"**{t('sections.prescricoes_semanais.peak_active_users')}: {df_admin_semanas['Active Users'].max()}**")
             
             # Download CSV administrations
             csv_admin = df_exib_admin.to_csv(index=False, encoding='utf-8-sig')
             st.download_button(
-                label="📥 Download Administrations by Period (CSV)",
+                label=t('sections.prescricoes_semanais.download_admin'),
                 data=csv_admin,
                 file_name=f"administrations_periodos_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv"
@@ -162,18 +156,18 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
         
         # Tabela detalhada de administrations por semana
         st.markdown("---")
-        st.markdown("### 📋 Detailed Administrations Data by Week")
-        st.info("Download complete table with all administrations grouped by week and patient for manual validation.")
+        st.markdown(f"### {t('sections.prescricoes_semanais.detailed_admin_title')}")
+        st.info(t('sections.prescricoes_semanais.detailed_admin_info'))
         
         df_admin_detalhado = gerar_tabela_administrations_semana(pacientes_filtrados, data_inicio, data_fim)
         
         if not df_admin_detalhado.empty:
-            st.markdown(f"**Total administrations records: {len(df_admin_detalhado)}**")
+            st.markdown(f"**{t('sections.prescricoes_semanais.total_admin_records')}: {len(df_admin_detalhado)}**")
             st.dataframe(
                 df_admin_detalhado.head(100),
                 use_container_width=True,
                 column_config={
-                    "patient_id": st.column_config.TextColumn("Patient ID", width="medium"),
+                    "patient_id": st.column_config.TextColumn(t('tables.patient_id'), width="medium"),
                     "week_period": st.column_config.TextColumn("Week Period", width="medium"),
                     "week_number": st.column_config.NumberColumn("Week #", width="small"),
                     "total_administrations": st.column_config.NumberColumn("Total Administrations", width="medium")
@@ -181,25 +175,25 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
             )
             
             if len(df_admin_detalhado) > 100:
-                st.info(f"Showing first 100 rows of {len(df_admin_detalhado)} total records. Download full table below.")
+                st.info(t('sections.prescricoes_semanais.showing_first', count=100, total=len(df_admin_detalhado)))
             
             # Preparar para download
             df_admin_download = df_admin_detalhado.copy()
             csv_admin_detalhado = df_admin_download.to_csv(index=False, encoding='utf-8-sig')
             st.download_button(
-                label="📥 Download Complete Administrations by Week (CSV)",
+                label=t('sections.prescricoes_semanais.download_detailed_admin'),
                 data=csv_admin_detalhado,
                 file_name=f"administrations_detalhado_semana_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv",
                 help="Complete table with administrations grouped by patient and week"
             )
         else:
-            st.warning("No administrations data found.")
+            st.warning(t('sections.prescricoes_semanais.no_admin_data'))
     
     # ========== TAB 2: PRESCRIPTIONS BY WEEK ==========
     with tab2:
-        st.subheader("Total Prescriptions Created by Week")
-        st.info("This analysis counts each **prescription** that was **created** in each week period.")
+        st.subheader(t('sections.prescricoes_semanais.presc_title'))
+        st.info(t('sections.prescricoes_semanais.presc_info'))
         
         # Calcular dados semanais de prescriptions
         semanas_prescriptions = {}
@@ -288,7 +282,7 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
             st.plotly_chart(fig_usuarios_presc, use_container_width=True, height=300)
         
         with col_tab_presc:
-            st.markdown("**Data by Period**")
+            st.markdown(f"**{t('sections.prescricoes_semanais.data_by_period')}**")
             df_exib_presc = df_presc_semanas[['Period', 'Total Prescriptions', 'Active Users']].copy()
             df_exib_presc['Total Prescriptions'] = df_exib_presc['Total Prescriptions'].astype(int)
             df_exib_presc['Active Users'] = df_exib_presc['Active Users'].astype(int)
@@ -297,21 +291,21 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
                 df_exib_presc,
                 use_container_width=True,
                 column_config={
-                    "Period": st.column_config.TextColumn("Period", width="medium"),
+                    "Period": st.column_config.TextColumn(t('tables.period'), width="medium"),
                     "Total Prescriptions": st.column_config.NumberColumn("Total Prescriptions", width="medium"),
-                    "Active Users": st.column_config.NumberColumn("Active Users", width="small")
+                    "Active Users": st.column_config.NumberColumn(t('tables.active_users'), width="small")
                 }
             )
             
-            st.markdown(f"**Total periods: {len(df_presc_semanas)}**")
+            st.markdown(f"**{t('sections.prescricoes_semanais.total_periods')}: {len(df_presc_semanas)}**")
             st.markdown(f"**Total prescriptions: {df_presc_semanas['Total Prescriptions'].sum()}**")
             st.markdown(f"**Peak prescriptions/week: {df_presc_semanas['Total Prescriptions'].max()}**")
-            st.markdown(f"**Peak active users: {df_presc_semanas['Active Users'].max()}**")
+            st.markdown(f"**{t('sections.prescricoes_semanais.peak_active_users')}: {df_presc_semanas['Active Users'].max()}**")
             
             # Download CSV prescriptions
             csv_presc = df_exib_presc.to_csv(index=False, encoding='utf-8-sig')
             st.download_button(
-                label="📥 Download Prescriptions by Period (CSV)",
+                label=t('sections.prescricoes_semanais.download_presc'),
                 data=csv_presc,
                 file_name=f"prescriptions_periodos_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv"
@@ -319,18 +313,18 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
         
         # Tabela detalhada de prescriptions por semana
         st.markdown("---")
-        st.markdown("### 📋 Detailed Prescriptions Data by Week")
-        st.info("Download complete table with all prescriptions grouped by week and patient for manual validation.")
+        st.markdown(f"### {t('sections.prescricoes_semanais.detailed_presc_title')}")
+        st.info(t('sections.prescricoes_semanais.detailed_presc_info'))
         
         df_presc_detalhado = gerar_tabela_prescriptions_semana(pacientes_filtrados, data_inicio, data_fim)
         
         if not df_presc_detalhado.empty:
-            st.markdown(f"**Total prescriptions records: {len(df_presc_detalhado)}**")
+            st.markdown(f"**{t('sections.prescricoes_semanais.total_presc_records')}: {len(df_presc_detalhado)}**")
             st.dataframe(
                 df_presc_detalhado.head(100),
                 use_container_width=True,
                 column_config={
-                    "patient_id": st.column_config.TextColumn("Patient ID", width="medium"),
+                    "patient_id": st.column_config.TextColumn(t('tables.patient_id'), width="medium"),
                     "week_period": st.column_config.TextColumn("Week Period", width="medium"),
                     "week_number": st.column_config.NumberColumn("Week #", width="small"),
                     "total_prescriptions": st.column_config.NumberColumn("Total Prescriptions", width="medium")
@@ -338,36 +332,36 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
             )
             
             if len(df_presc_detalhado) > 100:
-                st.info(f"Showing first 100 rows of {len(df_presc_detalhado)} total records. Download full table below.")
+                st.info(t('sections.prescricoes_semanais.showing_first', count=100, total=len(df_presc_detalhado)))
             
             # Preparar para download
             df_presc_download = df_presc_detalhado.copy()
             csv_presc_detalhado = df_presc_download.to_csv(index=False, encoding='utf-8-sig')
             st.download_button(
-                label="📥 Download Complete Prescriptions by Week (CSV)",
+                label=t('sections.prescricoes_semanais.download_detailed_presc'),
                 data=csv_presc_detalhado,
                 file_name=f"prescriptions_detalhado_semana_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv",
                 help="Complete table with prescriptions grouped by patient and week"
             )
         else:
-            st.warning("No prescriptions data found.")
+            st.warning(t('sections.prescricoes_semanais.no_presc_data'))
     
     # Tabela de validação completa (mantida no final)
     st.markdown("---")
-    st.markdown("### 📋 Complete Prescription Validation Table")
-    st.info("Complete extraction of all prescriptions with their taken status for data validation.")
+    st.markdown(f"### {t('sections.prescricoes_semanais.validation_title')}")
+    st.info(t('sections.prescricoes_semanais.validation_info'))
     
     df_validacao = gerar_tabela_validacao_completa(pacientes_filtrados)
     
     if not df_validacao.empty:
-        st.markdown(f"**Total prescriptions in validation table: {len(df_validacao)}**")
+        st.markdown(f"**{t('sections.prescricoes_semanais.total_presc_validation')}: {len(df_validacao)}**")
         
         st.dataframe(
             df_validacao.head(100),
             use_container_width=True,
             column_config={
-                "patient_id": st.column_config.TextColumn("Patient ID", width="medium"),
+                "patient_id": st.column_config.TextColumn(t('tables.patient_id'), width="medium"),
                 "prescription_date": st.column_config.DatetimeColumn("Prescription Date", width="medium"),
                 "prescription_id": st.column_config.TextColumn("Prescription ID", width="medium"),
                 "taken": st.column_config.TextColumn("Taken", width="small")
@@ -375,17 +369,17 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
         )
         
         if len(df_validacao) > 100:
-            st.info(f"Showing first 100 rows of {len(df_validacao)} total prescriptions. Download the full table below.")
+            st.info(t('sections.prescricoes_semanais.showing_first', count=100, total=len(df_validacao)))
         
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Total Prescriptions", len(df_validacao))
+            st.metric(t('sections.prescricoes_semanais.total_prescriptions'), len(df_validacao))
         with col2:
             presc_taken = len(df_validacao[df_validacao['taken'] == True])
-            st.metric("Prescriptions Taken", presc_taken)
+            st.metric(t('sections.prescricoes_semanais.prescriptions_taken'), presc_taken)
         with col3:
             presc_not_taken = len(df_validacao[df_validacao['taken'] == False])
-            st.metric("Prescriptions Not Taken", presc_not_taken)
+            st.metric(t('sections.prescricoes_semanais.prescriptions_not_taken'), presc_not_taken)
         
         df_download = df_validacao.copy()
         if 'prescription_date' in df_download.columns:
@@ -396,14 +390,14 @@ def mostrar_prescricoes_semanais(pacientes_recorte):
         
         csv_validacao = df_download.to_csv(index=False, encoding='utf-8-sig')
         st.download_button(
-            label="📥 Download Complete Validation Table (CSV)",
+            label=t('sections.prescricoes_semanais.download_validation'),
             data=csv_validacao,
             file_name=f"prescriptions_validation_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
             mime="text/csv",
             help="Download complete table with all prescriptions and their taken status"
         )
     else:
-        st.warning("No prescriptions found for validation table.")
+        st.warning(t('sections.prescricoes_semanais.no_presc_validation'))
 
 
 def gerar_tabela_administrations_semana(pacientes_filtrados, data_inicio, data_fim):

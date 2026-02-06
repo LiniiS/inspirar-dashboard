@@ -3,18 +3,19 @@ import plotly.express as px
 import numpy as np
 import pandas as pd
 from utils.colors import CHART_COLORS
+from utils.translations import t
 
 def mostrar_funcionalidades_sexo(df_recorte):
-    st.info('Comparative analysis of feature usage between male and female patients to identify adoption patterns by sex.')
+    st.info(t('sections.funcionalidades_sexo.description'))
     
-    # Filtrar dados para excluir sexo indefinido ('I')
-    df_sexo_definido = df_recorte[df_recorte['sex'].isin(['M', 'F'])].copy()
+    # Copiar dados para análise por gênero
+    df_gender = df_recorte.copy()
     
-    if not df_sexo_definido.empty:
+    if not df_gender.empty:
         # Mapear códigos para nomes completos
-        df_sexo_definido['Sexo'] = df_sexo_definido['sex'].map({
-            'M': 'Male',
-            'F': 'Female'
+        df_gender['Sexo'] = df_gender['gender'].map({
+            'male': t('sections.ativos.male'),
+            'female': t('sections.ativos.female')
         })
         
         # Calcular uso de funcionalidades por sexo
@@ -27,29 +28,32 @@ def mostrar_funcionalidades_sexo(df_recorte):
             'crisis': 'Crisis Records'
         }
         
+        male_label = t('sections.ativos.male')
+        female_label = t('sections.ativos.female')
+        
         for func_key, func_nome in funcionalidades_nomes.items():
             # Contar usuários por sexo que usaram a funcionalidade
-            masculino_count = df_sexo_definido[
-                (df_sexo_definido['Sexo'] == 'Male') & 
-                (df_sexo_definido[func_key].apply(lambda x: len(x) > 0 if isinstance(x, list) else False))
+            masculino_count = df_gender[
+                (df_gender['Sexo'] == male_label) & 
+                (df_gender[func_key].apply(lambda x: len(x) > 0 if isinstance(x, list) else False))
             ].shape[0]
             
-            feminino_count = df_sexo_definido[
-                (df_sexo_definido['Sexo'] == 'Female') & 
-                (df_sexo_definido[func_key].apply(lambda x: len(x) > 0 if isinstance(x, list) else False))
+            feminino_count = df_gender[
+                (df_gender['Sexo'] == female_label) & 
+                (df_gender[func_key].apply(lambda x: len(x) > 0 if isinstance(x, list) else False))
             ].shape[0]
             
             # Total de usuários por sexo
-            total_masculino = df_sexo_definido[df_sexo_definido['Sexo'] == 'Male'].shape[0]
-            total_feminino = df_sexo_definido[df_sexo_definido['Sexo'] == 'Female'].shape[0]
+            total_masculino = df_gender[df_gender['Sexo'] == male_label].shape[0]
+            total_feminino = df_gender[df_gender['Sexo'] == female_label].shape[0]
             
             # Calcular percentuais
             perc_masculino = (masculino_count / total_masculino * 100) if total_masculino > 0 else 0
             perc_feminino = (feminino_count / total_feminino * 100) if total_feminino > 0 else 0
             
             funcionalidades_sexo[func_nome] = {
-                'Male': {'count': masculino_count, 'total': total_masculino, 'perc': perc_masculino},
-                'Female': {'count': feminino_count, 'total': total_feminino, 'perc': perc_feminino}
+                male_label: {'count': masculino_count, 'total': total_masculino, 'perc': perc_masculino},
+                female_label: {'count': feminino_count, 'total': total_feminino, 'perc': perc_feminino}
             }
         
         # Layout lado a lado: gráficos e tabelas
@@ -60,8 +64,8 @@ def mostrar_funcionalidades_sexo(df_recorte):
             dados_grafico = []
             for func_nome, dados in funcionalidades_sexo.items():
                 dados_grafico.extend([
-                    {'Feature': func_nome, 'Sex': 'Male', 'Percentage': dados['Male']['perc'], 'Users': dados['Male']['count']},
-                    {'Feature': func_nome, 'Sex': 'Female', 'Percentage': dados['Female']['perc'], 'Users': dados['Female']['count']}
+                    {'Feature': func_nome, 'Sex': male_label, 'Percentage': dados[male_label]['perc'], 'Users': dados[male_label]['count']},
+                    {'Feature': func_nome, 'Sex': female_label, 'Percentage': dados[female_label]['perc'], 'Users': dados[female_label]['count']}
                 ])
             
             df_grafico = pd.DataFrame(dados_grafico)
@@ -72,8 +76,8 @@ def mostrar_funcionalidades_sexo(df_recorte):
                 x='Feature',
                 y='Percentage',
                 color='Sex',
-                title='Feature Adoption Rate by Sex (%)',
-                labels={'Percentage': 'Adoption Rate (%)', 'Feature': 'Feature'},
+                title=t('charts.titles.adoption_rate_by_sex'),
+                labels={'Percentage': t('sections.funcionalidades_sexo.adoption_rate'), 'Feature': 'Feature'},
                 color_discrete_sequence=[CHART_COLORS[1], CHART_COLORS[2]],
                 barmode='group'
             )
@@ -81,8 +85,8 @@ def mostrar_funcionalidades_sexo(df_recorte):
                 height=400,
                 margin=dict(l=50, r=50, t=80, b=50),
                 xaxis_title="Features",
-                yaxis_title="Adoption Rate (%)",
-                legend_title="Sex",
+                yaxis_title=t('sections.funcionalidades_sexo.adoption_rate'),
+                legend_title=t('tables.sex'),
                 xaxis=dict(tickangle=45)
             )
             st.plotly_chart(fig_perc, use_container_width=True, height=400)
@@ -93,8 +97,8 @@ def mostrar_funcionalidades_sexo(df_recorte):
                 x='Feature',
                 y='Users',
                 color='Sex',
-                title='Number of Users by Feature and Sex',
-                labels={'Users': 'Number of Users', 'Feature': 'Feature'},
+                title=t('charts.titles.users_by_feature_sex'),
+                labels={'Users': t('sections.funcionalidades_sexo.number_of_users'), 'Feature': 'Feature'},
                 color_discrete_sequence=[CHART_COLORS[1], CHART_COLORS[2]],
                 barmode='group'
             )
@@ -102,25 +106,25 @@ def mostrar_funcionalidades_sexo(df_recorte):
                 height=400,
                 margin=dict(l=50, r=50, t=80, b=50),
                 xaxis_title="Features",
-                yaxis_title="Number of Users",
-                legend_title="Sex",
+                yaxis_title=t('sections.funcionalidades_sexo.number_of_users'),
+                legend_title=t('tables.sex'),
                 xaxis=dict(tickangle=45)
             )
             st.plotly_chart(fig_abs, use_container_width=True, height=400)
         
         with col_tabelas:
             # Tabela detalhada
-            st.markdown("**Detailed Data by Sex:**")
+            st.markdown(f"**{t('sections.funcionalidades_sexo.detailed_data')}**")
             
             # Criar tabela para exibição
             tabela_dados = []
             for func_nome, dados in funcionalidades_sexo.items():
                 tabela_dados.append({
                     'Feature': func_nome,
-                    'Male Users': f"{dados['Male']['count']}/{dados['Male']['total']}",
-                    'Male %': f"{dados['Male']['perc']:.1f}%",
-                    'Female Users': f"{dados['Female']['count']}/{dados['Female']['total']}",
-                    'Female %': f"{dados['Female']['perc']:.1f}%"
+                    'Male Users': f"{dados[male_label]['count']}/{dados[male_label]['total']}",
+                    'Male %': f"{dados[male_label]['perc']:.1f}%",
+                    'Female Users': f"{dados[female_label]['count']}/{dados[female_label]['total']}",
+                    'Female %': f"{dados[female_label]['perc']:.1f}%"
                 })
             
             df_tabela = pd.DataFrame(tabela_dados)
@@ -138,12 +142,12 @@ def mostrar_funcionalidades_sexo(df_recorte):
             )
             
             # Resumo estatístico
-            st.markdown("**Summary:**")
-            total_masc = df_sexo_definido[df_sexo_definido['Sexo'] == 'Male'].shape[0]
-            total_fem = df_sexo_definido[df_sexo_definido['Sexo'] == 'Female'].shape[0]
+            st.markdown(f"**{t('sections.funcionalidades_sexo.summary')}**")
+            total_masc = df_gender[df_gender['Sexo'] == t('sections.ativos.male')].shape[0]
+            total_fem = df_gender[df_gender['Sexo'] == t('sections.ativos.female')].shape[0]
             
-            st.markdown(f"• **Total Male:** {total_masc} patients")
-            st.markdown(f"• **Total Female:** {total_fem} patients")
+            st.markdown(f"• **{t('sections.funcionalidades_sexo.total_male')}:** {total_masc} {t('sections.funcionalidades_geral.patients')}")
+            st.markdown(f"• **{t('sections.funcionalidades_sexo.total_female')}:** {total_fem} {t('sections.funcionalidades_geral.patients')}")
             
             # Identificar funcionalidade com maior diferença de adesão
             maior_diff = 0
@@ -151,35 +155,30 @@ def mostrar_funcionalidades_sexo(df_recorte):
             sexo_maior_adesao = ""
             
             for func_nome, dados in funcionalidades_sexo.items():
-                diff = abs(dados['Male']['perc'] - dados['Female']['perc'])
+                diff = abs(dados[male_label]['perc'] - dados[female_label]['perc'])
                 if diff > maior_diff:
                     maior_diff = diff
                     func_maior_diff = func_nome
-                    if dados['Male']['perc'] > dados['Female']['perc']:
-                        sexo_maior_adesao = "Male"
+                    if dados[male_label]['perc'] > dados[female_label]['perc']:
+                        sexo_maior_adesao = male_label
                     else:
-                        sexo_maior_adesao = "Female"
+                        sexo_maior_adesao = female_label
             
             if maior_diff > 0:
-                st.markdown(f"• **Largest difference:** {func_maior_diff}")
-                st.markdown(f"• **Higher adoption:** {sexo_maior_adesao}")
-                st.markdown(f"• **Difference:** {maior_diff:.1f}%")
+                st.markdown(f"• **{t('sections.funcionalidades_sexo.largest_difference')}:** {func_maior_diff}")
+                st.markdown(f"• **{t('sections.funcionalidades_sexo.higher_adoption')}:** {sexo_maior_adesao}")
+                st.markdown(f"• **{t('sections.funcionalidades_sexo.difference')}:** {maior_diff:.1f}%")
             
             # Botão de download
             csv_sexo = df_tabela.to_csv(index=False, encoding='utf-8-sig')
             st.download_button(
-                label="📥 Download Data by Sex (CSV)",
+                label=t('sections.funcionalidades_sexo.download_csv'),
                 data=csv_sexo,
                 file_name=f"funcionalidades_por_sexo_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv"
             )
         
-        # Nota sobre dados pessoais
-        pacientes_indefinidos = len(df_recorte[df_recorte['sex'] == 'I'])
-        if pacientes_indefinidos > 0:
-            st.info(f"**Note:** {pacientes_indefinidos} patient(s) with undefined sex do not appear in this analysis due to personal data exclusion policy.")
-    
     else:
-        st.warning("No data with defined sex available for comparative analysis.")
+        st.warning(t('sections.funcionalidades_sexo.no_data_sex'))
     
     st.markdown('---')

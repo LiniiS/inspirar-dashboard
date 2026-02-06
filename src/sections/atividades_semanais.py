@@ -4,10 +4,11 @@ import pandas as pd
 import plotly.express as px
 from dateutil import parser
 from utils.colors import CHART_COLORS
+from utils.translations import t
 
 def mostrar_atividades_semanais(pacientes_recorte):
-    st.subheader("Physical Activity Records by Week")
-    st.info("This section shows weekly physical activity record behavior: analysis considers only patients with accounts created from March 2025 onwards.")
+    st.subheader(t('sections.atividades_semanais.title'))
+    st.info(t('sections.atividades_semanais.description'))
     
     # --- Helpers ---------------------------------------------------------
     def safe_parse_dt(dt):
@@ -51,13 +52,9 @@ def mostrar_atividades_semanais(pacientes_recorte):
     data_inicio = pd.Timestamp('2025-03-01').tz_localize('UTC')
     data_fim = pd.Timestamp('2025-10-08').tz_localize('UTC')
 
-    # Filtrar pacientes criados a partir de março de 2025
-    pacientes_filtrados = []
-    data_limite = pd.Timestamp('2025-03-01').tz_localize('UTC')
-    for paciente in pacientes_recorte:
-        data_cadastro = safe_parse_dt(paciente.get('createdAt'))
-        if data_cadastro and data_cadastro >= data_limite:
-            pacientes_filtrados.append(paciente)
+    # pacientes_recorte já vem filtrado do dashboard.py (createdAt >= 2025-03-01)
+    # Garante que todos os gráficos considerem apenas contas criadas a partir de março/2025
+    pacientes_filtrados = pacientes_recorte
 
 
     # Loop semanal
@@ -136,15 +133,15 @@ def mostrar_atividades_semanais(pacientes_recorte):
             df_semanas_atividades,
             x='Period',
             y='Average Records',
-            title='Average Physical Activity Records by Period',
+            title=t('charts.titles.activities_by_week'),
             color_discrete_sequence=[CHART_COLORS[2]],
-            labels={'Average Records': 'Average Records', 'Period': 'Period'}
+            labels={'Average Records': t('charts.labels.average_records'), 'Period': t('charts.labels.period')}
         )
         fig_atividades.update_layout(
             height=400,
             margin=dict(l=50, r=50, t=80, b=50),
-            xaxis_title="Period",
-            yaxis_title="Average Activity Records"
+            xaxis_title=t('charts.labels.period'),
+            yaxis_title=t('charts.labels.average_records')
         )
         st.plotly_chart(fig_atividades, use_container_width=True, height=400)
 
@@ -153,14 +150,14 @@ def mostrar_atividades_semanais(pacientes_recorte):
             df_semanas_atividades,
             x='Period',
             y='Active Users',
-            title='Active Users Evolution by Period - Activities',
+            title=t('sections.atividades_semanais.active_users_evolution'),
             color_discrete_sequence=[CHART_COLORS[2]]
         )
         fig_usuarios_atividades.update_layout(
             height=300,
             margin=dict(l=50, r=50, t=80, b=50),
-            xaxis_title="Period",
-            yaxis_title="Number of Active Users"
+            xaxis_title=t('charts.labels.period'),
+            yaxis_title=t('charts.labels.active_users')
         )
         st.plotly_chart(fig_usuarios_atividades, use_container_width=True, height=300)
 
@@ -170,27 +167,27 @@ def mostrar_atividades_semanais(pacientes_recorte):
                 df_semanas_atividades,
                 x='Period',
                 y='Average Steps per Active User',
-                title='Average Steps per Active User by Period',
+                title=t('charts.titles.steps_by_week'),
                 color_discrete_sequence=[CHART_COLORS[2]],
                 labels={
-                    'Average Steps per Active User': 'Average Steps',
-                    'Period': 'Period'
+                    'Average Steps per Active User': t('charts.labels.total_steps'),
+                    'Period': t('charts.labels.period')
                 }
             )
             fig_barras_passos.update_layout(
                 height=400,
                 margin=dict(l=50, r=50, t=80, b=50),
-                xaxis_title="Period",
-                yaxis_title="Average Steps per User",
+                xaxis_title=t('charts.labels.period'),
+                yaxis_title=t('charts.labels.total_steps'),
                 xaxis=dict(tickangle=45)
             )
             st.plotly_chart(fig_barras_passos, use_container_width=True, height=400)
         else:
-            st.info("No weeks with active users to display in chart.")
+            st.info(t('sections.atividades_semanais.no_weeks'))
         
         # Novo gráfico: Passos diários de um paciente específico
         st.markdown("---")
-        st.markdown("### Individual Daily Steps Analysis")
+        st.markdown(f"### {t('sections.atividades_semanais.individual_analysis')}")
         
         # Obter lista de IDs dos pacientes
         ids_pacientes = [p.get('id', 'N/A') for p in pacientes_filtrados if p.get('id')]
@@ -199,7 +196,7 @@ def mostrar_atividades_semanais(pacientes_recorte):
         if ids_pacientes:
             # Seletor de paciente
             paciente_selecionado = st.selectbox(
-                "Select patient by ID:",
+                t('sections.atividades_semanais.select_patient'),
                 ids_pacientes,
                 index=0
             )
@@ -211,7 +208,7 @@ def mostrar_atividades_semanais(pacientes_recorte):
             ]
             
             mes_selecionado = st.selectbox(
-                "Select month:",
+                t('sections.atividades_semanais.select_month'),
                 meses_disponiveis,
                 index=0
             )
@@ -285,7 +282,7 @@ def mostrar_atividades_semanais(pacientes_recorte):
                         st.metric("Day with Most Steps", f"{passos_por_dia['passos'].max():,}")
                     
                     # Tabela com dados diários
-                    st.markdown("**Detailed Daily Data:**")
+                    st.markdown(f"**{t('sections.atividades_semanais.detailed_daily_data')}**")
                     passos_por_dia['Day'] = passos_por_dia['dia']
                     passos_por_dia['Steps'] = passos_por_dia['passos']
                     st.dataframe(
@@ -297,12 +294,12 @@ def mostrar_atividades_semanais(pacientes_recorte):
                         }
                     )
                 else:
-                    st.warning(f"No activity recorded for patient {paciente_selecionado} in {mes_selecionado}.")
+                    st.warning(t('sections.atividades_semanais.no_activity_patient', patient=paciente_selecionado, month=mes_selecionado))
         else:
-            st.warning("No patient found with valid ID.")
+            st.warning(t('sections.atividades_semanais.no_patient_found'))
 
     with col_tab_atividades:
-        st.markdown("**Data by Period - Physical Activities**")
+        st.markdown(f"**{t('sections.atividades_semanais.data_by_period')}**")
         df_exibicao_atividades = df_semanas_atividades[
             ['Period', 'Week', 'Average Records', 'Active Users', 'Total Steps', 'Average Steps per Active User']
         ].copy()
@@ -313,23 +310,23 @@ def mostrar_atividades_semanais(pacientes_recorte):
             df_exibicao_atividades,
             use_container_width=True,
             column_config={
-                "Period": st.column_config.TextColumn("Period", width="medium"),
-                "Week": st.column_config.NumberColumn("Week", width="small"),
-                "Average Records": st.column_config.NumberColumn("Average Records", format="%.2f", width="medium"),
-                "Active Users": st.column_config.NumberColumn("Active Users", width="small"),
-                "Total Steps": st.column_config.NumberColumn("Total Steps", format="%,d", width="medium"),
+                "Period": st.column_config.TextColumn(t('tables.period'), width="medium"),
+                "Week": st.column_config.NumberColumn(t('charts.labels.week'), width="small"),
+                "Average Records": st.column_config.NumberColumn(t('tables.average_records'), format="%.2f", width="medium"),
+                "Active Users": st.column_config.NumberColumn(t('tables.active_users'), width="small"),
+                "Total Steps": st.column_config.NumberColumn(t('tables.total_steps'), format="%,d", width="medium"),
                 "Average Steps per Active User": st.column_config.NumberColumn("Avg Steps/User", format="%,d", width="medium"),
             }
         )
 
-        st.markdown(f"**Total periods analyzed:** {len(df_semanas_atividades)}")
-        st.markdown(f"**Overall average records:** {df_semanas_atividades['Average Records'].mean():.2f}")
-        st.markdown(f"**Peak active users:** {df_semanas_atividades['Active Users'].max()}")
-        st.markdown(f"**Highest total steps in a week:** {df_semanas_atividades['Total Steps'].max():,}")
+        st.markdown(f"**{t('sections.atividades_semanais.total_periods')}: {len(df_semanas_atividades)}**")
+        st.markdown(f"**{t('sections.atividades_semanais.overall_average')}: {df_semanas_atividades['Average Records'].mean():.2f}**")
+        st.markdown(f"**{t('sections.atividades_semanais.peak_active_users')}: {df_semanas_atividades['Active Users'].max()}**")
+        st.markdown(f"**{t('sections.atividades_semanais.highest_steps')}: {df_semanas_atividades['Total Steps'].max():,}**")
 
         csv_atividades = df_exibicao_atividades.to_csv(index=False, encoding='utf-8-sig')
         st.download_button(
-            label="📥 Download Activity Data (CSV)",
+            label=t('sections.atividades_semanais.download_csv'),
             data=csv_atividades,
             file_name=f"atividades_fisicas_periodos_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
             mime="text/csv"

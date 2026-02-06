@@ -2,9 +2,10 @@ import streamlit as st
 import plotly.express as px
 import numpy as np
 from utils.colors import CHART_COLORS
+from utils.translations import t
 
 def mostrar_idade(df_recorte):
-    st.markdown('Analysis of registered patients age range, including general and sex-based distribution.')
+    st.markdown(t('sections.idade.description'))
     
     if not df_recorte.empty:
         # Layout lado a lado
@@ -16,37 +17,37 @@ def mostrar_idade(df_recorte):
                 df_recorte,
                 x='age',
                 nbins=15,
-                title="General Age Distribution",
-                labels={'age': 'Age', 'count': 'Frequency'},
+                title=t('sections.idade.general_distribution'),
+                labels={'age': t('charts.labels.age'), 'count': 'Frequency'},
                 color_discrete_sequence=[CHART_COLORS[0]]
             )
             fig_idade_geral.update_layout(
                 height=400,
                 margin=dict(l=50, r=50, t=80, b=50),
-                xaxis_title="Age (years)",
-                yaxis_title="Number of Patients"
+                xaxis_title=f"{t('charts.labels.age')} ({t('sections.idade.years')})",
+                yaxis_title=f"Number of {t('sections.idade.patients')}"
             )
             st.plotly_chart(fig_idade_geral, use_container_width=True, height=400)
         
         with col_sexo:
-            # Filtrar dados para excluir sexo indefinido ('I')
-            df_sexo_definido = df_recorte[df_recorte['sex'].isin(['M', 'F'])].copy()
+            # Copiar dados para análise por gênero
+            df_gender = df_recorte.copy()
             
-            if not df_sexo_definido.empty:
+            if not df_gender.empty:
                 # Mapear códigos para nomes completos
-                df_sexo_definido['Sexo'] = df_sexo_definido['sex'].map({
-                    'M': 'Male',
-                    'F': 'Female'
+                df_gender['Sexo'] = df_gender['gender'].map({
+                    'male': t('sections.ativos.male'),
+                    'female': t('sections.ativos.female')
                 })
                 
                 # Gráfico de distribuição de idade por sexo
                 fig_idade_sexo = px.histogram(
-                    df_sexo_definido,
+                    df_gender,
                     x='age',
                     color='Sexo',
                     nbins=15,
-                    title="Age Distribution by Sex",
-                    labels={'age': 'Age', 'count': 'Frequency'},
+                    title=t('sections.idade.distribution_by_sex'),
+                    labels={'age': t('charts.labels.age'), 'count': 'Frequency'},
                     color_discrete_sequence=[CHART_COLORS[1], CHART_COLORS[2]],
                     barmode='overlay',
                     opacity=0.7
@@ -54,67 +55,62 @@ def mostrar_idade(df_recorte):
                 fig_idade_sexo.update_layout(
                     height=400,
                     margin=dict(l=50, r=50, t=80, b=50),
-                    xaxis_title="Age (years)",
-                    yaxis_title="Number of Patients",
-                    legend_title="Sex"
+                    xaxis_title=f"{t('charts.labels.age')} ({t('sections.idade.years')})",
+                    yaxis_title=f"Number of {t('sections.idade.patients')}",
+                    legend_title=t('tables.sex')
                 )
                 st.plotly_chart(fig_idade_sexo, use_container_width=True, height=400)
                 
                 # Estatísticas por sexo
-                st.markdown("**Statistics by Sex:**")
+                st.markdown(f"**{t('sections.idade.statistics_by_sex')}**")
                 
                 # Calcular estatísticas
-                stats_masculino = df_sexo_definido[df_sexo_definido['Sexo'] == 'Male']['age']
-                stats_feminino = df_sexo_definido[df_sexo_definido['Sexo'] == 'Female']['age']
+                stats_masculino = df_gender[df_gender['Sexo'] == t('sections.ativos.male')]['age']
+                stats_feminino = df_gender[df_gender['Sexo'] == t('sections.ativos.female')]['age']
                 
                 col_stats_m, col_stats_f = st.columns(2)
                 
                 with col_stats_m:
-                    st.markdown("**Male:**")
+                    st.markdown(f"**{t('sections.ativos.male')}:**")
                     if not stats_masculino.empty:
-                        st.markdown(f"• Total: {len(stats_masculino)} patients")
-                        st.markdown(f"• Mean: {stats_masculino.mean():.1f} years")
-                        st.markdown(f"• Median: {stats_masculino.median():.1f} years")
-                        st.markdown(f"• Min-Max: {stats_masculino.min()}-{stats_masculino.max()} years")
+                        st.markdown(f"• {t('sections.idade.total')}: {len(stats_masculino)} {t('sections.idade.patients')}")
+                        st.markdown(f"• {t('sections.idade.mean')}: {stats_masculino.mean():.1f} {t('sections.idade.years')}")
+                        st.markdown(f"• {t('sections.idade.median')}: {stats_masculino.median():.1f} {t('sections.idade.years')}")
+                        st.markdown(f"• {t('sections.idade.min_max')}: {stats_masculino.min()}-{stats_masculino.max()} {t('sections.idade.years')}")
                     else:
                         st.markdown("• No data")
                 
                 with col_stats_f:
-                    st.markdown("**Female:**")
+                    st.markdown(f"**{t('sections.ativos.female')}:**")
                     if not stats_feminino.empty:
-                        st.markdown(f"• Total: {len(stats_feminino)} patients")
-                        st.markdown(f"• Mean: {stats_feminino.mean():.1f} years")
-                        st.markdown(f"• Median: {stats_feminino.median():.1f} years")
-                        st.markdown(f"• Min-Max: {stats_feminino.min()}-{stats_feminino.max()} years")
+                        st.markdown(f"• {t('sections.idade.total')}: {len(stats_feminino)} {t('sections.idade.patients')}")
+                        st.markdown(f"• {t('sections.idade.mean')}: {stats_feminino.mean():.1f} {t('sections.idade.years')}")
+                        st.markdown(f"• {t('sections.idade.median')}: {stats_feminino.median():.1f} {t('sections.idade.years')}")
+                        st.markdown(f"• {t('sections.idade.min_max')}: {stats_feminino.min()}-{stats_feminino.max()} {t('sections.idade.years')}")
                     else:
                         st.markdown("• No data")
             else:
-                st.warning("No age data with defined sex available for analysis.")
+                st.warning(t('sections.idade.no_data_sex'))
         
         # Resumo geral
         st.markdown("---")
         col_resumo1, col_resumo2, col_resumo3, col_resumo4 = st.columns(4)
         
         with col_resumo1:
-            st.metric("Total Patients", len(df_recorte))
+            st.metric(f"Total {t('sections.idade.patients')}", len(df_recorte))
         
         with col_resumo2:
-            st.metric("Average Age", f"{df_recorte['age'].mean():.1f} years")
+            st.metric(f"{t('sections.idade.mean')} {t('charts.labels.age')}", f"{df_recorte['age'].mean():.1f} {t('sections.idade.years')}")
         
         with col_resumo3:
-            st.metric("Median Age", f"{df_recorte['age'].median():.1f} years")
+            st.metric(f"{t('sections.idade.median')} {t('charts.labels.age')}", f"{df_recorte['age'].median():.1f} {t('sections.idade.years')}")
         
         with col_resumo4:
             idade_min = df_recorte['age'].min()
             idade_max = df_recorte['age'].max()
-            st.metric("Age Range", f"{idade_min}-{idade_max} years")
+            st.metric(f"{t('charts.labels.age')} {t('sections.idade.min_max')}", f"{idade_min}-{idade_max} {t('sections.idade.years')}")
         
-        # Nota sobre dados pessoais
-        pacientes_indefinidos = len(df_recorte[df_recorte['sex'] == 'I'])
-        if pacientes_indefinidos > 0:
-            st.info(f"**Note:** {pacientes_indefinidos} patient(s) with undefined sex do not appear in the sex chart due to personal data exclusion policy.")
-    
     else:
-        st.warning("No age data available for analysis.")
+        st.warning(t('sections.idade.no_data'))
     
     st.markdown('---') 
