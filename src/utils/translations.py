@@ -47,6 +47,7 @@ TRANSLATIONS = {
             'ativos': {
                 'title': 'Distribuição de Pacientes Ativos vs Inativos',
                 'description': 'Mostra a proporção de pacientes que utilizaram pelo menos uma funcionalidade versus os inativos.',
+                'note_active_45_days': '**Nota:** Considera-se paciente ativo aquele que fez uso de pelo menos uma funcionalidade nos últimos 45 dias.',
                 'note_personal_data': '**Nota sobre dados pessoais:** Pacientes que solicitaram exclusão de conta e dados pessoais têm seus dados de saúde mantidos para fins médicos, mas todos os dados pessoais (incluindo sexo) são removidos. Nestes casos, o sexo é registrado como "INDEFINIDO (I)" e estes pacientes não são representados no gráfico de distribuição por sexo dos pacientes ativos.',
                 'active': 'Ativo',
                 'inactive': 'Inativo',
@@ -423,6 +424,7 @@ TRANSLATIONS = {
             'ativos': {
                 'title': 'Active vs Inactive Patients Distribution',
                 'description': 'Shows the proportion of patients who used at least one feature versus inactive ones.',
+                'note_active_45_days': '**Note:** An active patient is considered one who has used at least one feature in the last 45 days.',
                 'note_personal_data': '**Note on personal data:** Patients who requested account and personal data deletion have their health data kept for medical purposes, but all personal data (including sex) is removed. In these cases, sex is recorded as "UNDEFINED (I)" and these patients are not represented in the sex distribution chart of active users.',
                 'active': 'Active',
                 'inactive': 'Inactive',

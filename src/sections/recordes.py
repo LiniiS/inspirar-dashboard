@@ -13,8 +13,8 @@ def mostrar_recordes(pacientes_recorte):
     melhor_media_diaria = 0
     paciente_mais_ativo_detalhes = None
 
-    # Data final de coleta
-    data_coleta = pd.Timestamp('2025-10-08').tz_localize('UTC')
+    # Data final de coleta = hoje (momento do upload do JSON)
+    data_coleta = st.session_state.get('data_fim', pd.Timestamp.now(tz='UTC'))
 
     for paciente in pacientes_recorte:
         # Data de criação da conta

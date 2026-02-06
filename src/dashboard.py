@@ -79,10 +79,10 @@ if uploaded_file:
         # Informação sobre o filtro aplicado
         st.info(f"📊 {t('dashboard.total_patients')}: {pacientes_depois} ({t('dashboard.accounts_from')})")
         
-        # Período fixo de extração dos dados 
-        periodo_texto = "março/2025-fevereiro/2026"
+        # Período de extração: data inicial fixa (01/03/2025), data final = hoje (momento do upload)
         data_inicio = pd.Timestamp('2025-03-01').tz_localize('UTC')
-        data_fim = pd.Timestamp('2026-02-06').tz_localize('UTC')
+        data_fim = pd.Timestamp.now(tz='UTC')
+        periodo_texto = f"março/2025 - {data_fim.strftime('%d/%m/%Y')}"
         
         # Armazenar informações do período no session_state para uso nas seções
         st.session_state['periodo_texto'] = periodo_texto

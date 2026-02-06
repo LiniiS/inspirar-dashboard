@@ -1,19 +1,64 @@
 import streamlit as st
+import pandas as pd
 import plotly.express as px
+from dateutil import parser as dateutil_parser
 from utils.colors import CHART_COLORS
 from utils.translations import t
+
+DIAS_ATIVIDADE_RECENTE = 45
+
+def _tem_registro_recente(registros, campos_data, data_limite):
+    """Verifica se algum registro tem data >= data_limite."""
+    if not isinstance(registros, list) or not registros:
+        return False
+    for item in registros:
+        if not isinstance(item, dict):
+            continue
+        for campo in campos_data:
+            data_str = item.get(campo)
+            if not data_str:
+                continue
+            try:
+                data_ts = pd.Timestamp(dateutil_parser.parse(data_str))
+                if data_ts.tzinfo is None:
+                    data_ts = data_ts.tz_localize('UTC', ambiguous='infer')
+                if data_ts >= data_limite:
+                    return True
+            except (TypeError, ValueError):
+                continue
+    return False
+
+def _prescription_tem_uso_recente(prescriptions, data_limite):
+    """Verifica prescrições: createdAt ou data de administrations."""
+    if not isinstance(prescriptions, list) or not prescriptions:
+        return False
+    for presc in prescriptions:
+        if not isinstance(presc, dict):
+            continue
+        # Prescrição criada recentemente
+        if _tem_registro_recente([presc], ['createdAt'], data_limite):
+            return True
+        # Administrações (tomadas) recentes
+        admins = presc.get('administrations', [])
+        if _tem_registro_recente(admins, ['date'], data_limite):
+            return True
+    return False
 
 def mostrar_ativos(df_recorte):
     st.subheader(t('sections.ativos.title'))
     st.markdown(t('sections.ativos.description'))
+    st.info(t('sections.ativos.note_active_45_days'))
+    
+    data_fim = st.session_state.get('data_fim', pd.Timestamp.now(tz='UTC'))
+    data_limite = data_fim - pd.Timedelta(days=DIAS_ATIVIDADE_RECENTE)
     
     def paciente_ativo(row):
         return any([
-            isinstance(row['symptomDiaries'], list) and len(row['symptomDiaries']) > 0,
-            isinstance(row['acqs'], list) and len(row['acqs']) > 0,
-            isinstance(row['activityLogs'], list) and len(row['activityLogs']) > 0,
-            isinstance(row['prescriptions'], list) and len(row['prescriptions']) > 0,
-            isinstance(row['crisis'], list) and len(row['crisis']) > 0
+            _tem_registro_recente(row.get('symptomDiaries', []), ['createdAt'], data_limite),
+            _tem_registro_recente(row.get('acqs', []), ['createdAt', 'answeredAt'], data_limite),
+            _tem_registro_recente(row.get('activityLogs', []), ['createdAt', 'date'], data_limite),
+            _prescription_tem_uso_recente(row.get('prescriptions', []), data_limite),
+            _tem_registro_recente(row.get('crisis', []), ['initialUsageDate', 'finalUsageDate', 'updatedAt'], data_limite),
         ])
     
     df_recorte = df_recorte.copy()  # Evitar SettingWithCopyWarning

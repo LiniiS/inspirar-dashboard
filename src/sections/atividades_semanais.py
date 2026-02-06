@@ -50,7 +50,7 @@ def mostrar_atividades_semanais(pacientes_recorte):
 
     # Janela fixa de análise
     data_inicio = pd.Timestamp('2025-03-01').tz_localize('UTC')
-    data_fim = pd.Timestamp('2025-10-08').tz_localize('UTC')
+    data_fim = st.session_state.get('data_fim', pd.Timestamp.now(tz='UTC'))
 
     # pacientes_recorte já vem filtrado do dashboard.py (createdAt >= 2025-03-01)
     # Garante que todos os gráficos considerem apenas contas criadas a partir de março/2025
