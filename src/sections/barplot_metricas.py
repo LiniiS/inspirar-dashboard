@@ -4,9 +4,10 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from utils.colors import CHART_COLORS, SECONDARY_DARKER, PRIMARY_DARKER
+from utils.translations import t
 
 def mostrar_barplot_metricas(df_recorte, pacientes_recorte):
-    st.subheader('Descriptive Analysis and Distribution of Numerical Metrics')
+    st.subheader(t('sections.barplot_metricas.title'))
     
     metricas_numericas = {
         'Age': 'age',
@@ -33,7 +34,7 @@ def mostrar_barplot_metricas(df_recorte, pacientes_recorte):
             metricas_numericas[nome] = col
     
     metrica_escolhida = st.selectbox(
-        "Select metric for analysis:",
+        t('sections.barplot_metricas.select_metric'),
         list(metricas_numericas.keys()),
         index=0
     )
@@ -43,12 +44,12 @@ def mostrar_barplot_metricas(df_recorte, pacientes_recorte):
     
     # Estatísticas descritivas
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric('Mean', f'{valores_validos.mean():.2f}')
-    col2.metric('Std Deviation', f'{valores_validos.std():.2f}')
-    col3.metric('Median', f'{valores_validos.median():.2f}')
-    col4.metric('IQR (25%-75%)', f'{valores_validos.quantile(0.25):.2f} - {valores_validos.quantile(0.75):.2f}')
+    col1.metric(t('sections.barplot_metricas.mean'), f'{valores_validos.mean():.2f}')
+    col2.metric(t('sections.barplot_metricas.std_deviation'), f'{valores_validos.std():.2f}')
+    col3.metric(t('sections.barplot_metricas.median'), f'{valores_validos.median():.2f}')
+    col4.metric(t('sections.barplot_metricas.iqr'), f'{valores_validos.quantile(0.25):.2f} - {valores_validos.quantile(0.75):.2f}')
     
-    st.markdown(f"### Percentage Distribution of {metrica_escolhida}")
+    st.markdown(f"### {t('sections.barplot_metricas.percentage_distribution', metric=metrica_escolhida)}")
     
     # Criar colunas para o gráfico de barras e tabela lado a lado
     col_grafico, col_tabela = st.columns([3, 2])
@@ -116,9 +117,9 @@ def mostrar_barplot_metricas(df_recorte, pacientes_recorte):
             ])
             
             fig_bar.update_layout(
-                title=f'Percentage Distribution of {metrica_escolhida}',
-                xaxis_title='Ranges',
-                yaxis_title='Percentage of Patients (%)',
+                title=t('sections.barplot_metricas.percentage_distribution', metric=metrica_escolhida),
+                xaxis_title=t('sections.barplot_metricas.range'),
+                yaxis_title=f"{t('sections.barplot_metricas.percentage')} (%)",
                 height=400,
                 margin=dict(l=50, r=50, t=80, b=50),
                 plot_bgcolor='rgba(0,0,0,0)',
@@ -137,11 +138,11 @@ def mostrar_barplot_metricas(df_recorte, pacientes_recorte):
             
             st.plotly_chart(fig_bar, use_container_width=True, height=400)
         else:
-            st.warning("Insufficient data to create distribution chart.")
+            st.warning(t('sections.barplot_metricas.no_data'))
     
     with col_tabela:
         # Tabela com distribuição por faixas
-        st.markdown(f"**Distribution of {metrica_escolhida}**")
+        st.markdown(f"**{t('sections.barplot_metricas.detailed_table')}**")
         
         if not df_faixas.empty:
             # Exibir tabela de distribuição
@@ -178,7 +179,7 @@ def mostrar_barplot_metricas(df_recorte, pacientes_recorte):
         # Tabela detalhada com dados individuais (colapsável)
         with st.expander("View individual patient data"):
             # Criar DataFrame para a tabela detalhada
-            colunas_tabela = [coluna, 'sex', 'id']
+            colunas_tabela = [coluna, 'gender', 'id']
             if coluna != 'age':
                 colunas_tabela.append('age')
             
@@ -191,7 +192,7 @@ def mostrar_barplot_metricas(df_recorte, pacientes_recorte):
             # Renomear colunas para melhor legibilidade
             df_tabela = df_tabela.rename(columns={
                 coluna: 'Value',
-                'sex': 'Sex',
+                'gender': 'Gender',
                 'id': 'Patient ID'
             })
             
@@ -202,11 +203,10 @@ def mostrar_barplot_metricas(df_recorte, pacientes_recorte):
                 # Se a métrica selecionada é 'age', renomear para 'Age' também
                 df_tabela = df_tabela.rename(columns={'Value': 'Age'})
             
-            # Mapear códigos de sexo
-            df_tabela['Sex'] = df_tabela['Sex'].map({
-                'M': 'M',
-                'F': 'F',
-                'I': 'Undefined'
+            # Mapear códigos de gênero
+            df_tabela['Gender'] = df_tabela['Gender'].map({
+                'male': t('sections.ativos.male'),
+                'female': t('sections.ativos.female')
             })
             
             # Formatar valores numéricos
@@ -221,7 +221,7 @@ def mostrar_barplot_metricas(df_recorte, pacientes_recorte):
                     "Patient ID": st.column_config.TextColumn("Patient ID", width="medium"),
                     "Value": st.column_config.NumberColumn("Value", format="%.2f", width="medium"),
                     "Age": st.column_config.NumberColumn("Age", width="small"),
-                    "Sex": st.column_config.TextColumn("Sex", width="small")
+                    "Gender": st.column_config.TextColumn("Gender", width="small")
                 }
             )
             
